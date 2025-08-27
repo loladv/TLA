@@ -1,20 +1,20 @@
-[![✗](https://img.shields.io/badge/Release-v2.0.0-ffb600.svg?style=for-the-badge)](https://github.com/agustin-golmar/Flex-Bison-Compiler/releases)
+[![Release](https://img.shields.io/badge/Release-v0.1.0-ffb600.svg?style=for-the-badge)](https://github.com/loladv/TLA/releases)
 
-[![✗](https://github.com/agustin-golmar/Flex-Bison-Compiler/actions/workflows/pipeline.yaml/badge.svg?branch=production)](https://github.com/agustin-golmar/Flex-Bison-Compiler/actions/workflows/pipeline.yaml)
+[![Build Status](https://github.com/loladv/TLA/actions/workflows/pipeline.yaml/badge.svg?branch=production)](https://github.com/loladv/TLA/actions/workflows/pipeline.yaml)
 
-# Flex-Bison-Compiler
+# PROYECTO TLA
 
 A base compiler example, developed with Flex and Bison.
 
-* [Requirements](#requirements)
-* [Configuration](#configuration)
-* [Commands](#commands)
-* [CI/CD](#cicd)
-* [Recommended Extensions](#recommended-extensions)
+- [Requirements](#requirements)
+- [Configuration](#configuration)
+- [Commands](#commands)
+- [CI/CD](#cicd)
+- [Recommended Extensions](#recommended-extensions)
 
 ## Requirements
 
-* [Docker v28.3.2](https://www.docker.com/)
+- [Docker v28.3.2](https://www.docker.com/)
 
 ## Configuration
 
@@ -24,7 +24,7 @@ Set the following environment variables to control and configure the behaviour o
 | :-------------------- | :-----: | :-------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `ENVIRONMENT`         | `Local` | The active environment name. The available environments are: `Local`, `Development` and `Production`.                                                                 |
 | `LOG_IGNORED_LEXEMES` | `true`  | When `true`, logs all of the ignored lexemes found with Flex at `DEBUGGING` level. To remove those logs from the console output set it to `false`.                    |
-| `LOGGING_LEVEL`       | `ALL`   | The minimum level to log in the console output. From lower to higher, the available levels are: `ALL`, `DEBUGGING`, `INFORMATION`, `WARNING`, `ERROR` and `CRITICAL`. |
+| `LOGGING_LEVEL`       |  `ALL`  | The minimum level to log in the console output. From lower to higher, the available levels are: `ALL`, `DEBUGGING`, `INFORMATION`, `WARNING`, `ERROR` and `CRITICAL`. |
 
 _Docker Compose_ can read the variables from an `.env` file too (see `compose.yaml` file).
 
@@ -97,6 +97,6 @@ To trigger an automatic integration on every push or PR (_Pull Request_), you mu
 
 ## Recommended Extensions
 
-* [C/C++](https://marketplace.visualstudio.com/items?itemName=ms-vscode.cpptools)
-* [CMake Tools](https://marketplace.visualstudio.com/items?itemName=ms-vscode.cmake-tools)
-* [Yash](https://marketplace.visualstudio.com/items?itemName=daohong-emilio.yash)
+- [C/C++](https://marketplace.visualstudio.com/items?itemName=ms-vscode.cpptools)
+- [CMake Tools](https://marketplace.visualstudio.com/items?itemName=ms-vscode.cmake-tools)
+- [Yash](https://marketplace.visualstudio.com/items?itemName=daohong-emilio.yash)
