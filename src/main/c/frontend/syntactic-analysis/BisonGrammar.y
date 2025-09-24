@@ -26,6 +26,7 @@ void yyerror(const YYLTYPE * location, const char * message) {}
 %union {
 	/** Terminals. */
 
+	char * text;
 	signed int integer;
 	TokenLabel token;
 
@@ -64,6 +65,34 @@ void yyerror(const YYLTYPE * location, const char * message) {}
 
 %token <token> IGNORED
 %token <token> UNKNOWN
+
+// TODO: Tokens para makelite-c, dejo los de la calculadora como referencia, despues sacar.
+%token <token> PROJECT
+%token <token> COMPILER
+%token <token> FLAGS
+%token <token> SRC
+%token <token> HEADERS
+%token <token> LIBS
+%token <token> OUTPUT
+%token <token> BUILD
+%token <token> RUN
+%token <token> VAR
+%token <token> USE
+%token <token> PRE_BUILD
+%token <token> POST_BUILD
+%token <token> CLEAN
+%token <token> TEST
+%token <token> TARGET
+
+%token <token> OPEN_BRACE
+%token <token> CLOSE_BRACE
+%token <token> COMMA
+%token <token> ARROW
+%token <token> ASSIGN
+
+%token <token> IDENT
+%token <text> TEXT
+
 
 /** Non-terminals. */
 %type <constant> constant

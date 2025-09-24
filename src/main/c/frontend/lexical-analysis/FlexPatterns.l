@@ -13,71 +13,77 @@
 /**
  * @see https://westes.github.io/flex/manual/Definitions-Section.html#Definitions-Section
  */
+%option yylineno
 
-extern CompilationStatus ArithmeticOperatorLexemeAction(TokenLabel label);
-extern CompilationStatus EnterImportExpressionLexemeAction(FlexContext context);
-extern CompilationStatus EnterMultilineCommentLexemeAction(FlexContext context);
+/* Acciones existentes del template */
 extern CompilationStatus EOFLexemeAction();
 extern CompilationStatus IgnoredLexemeAction();
-extern CompilationStatus IntegerLexemeAction();
-extern CompilationStatus LeaveImportExpressionLexemeAction();
-extern CompilationStatus LeaveMultilineCommentLexemeAction();
-extern CompilationStatus ParenthesisLexemeAction(TokenLabel label);
-extern CompilationStatus SubexpressionLexemeAction();
 extern CompilationStatus UnknownLexemeAction();
+extern CompilationStatus EnterMultilineCommentLexemeAction(FlexContext context);
+extern CompilationStatus LeaveMultilineCommentLexemeAction();
+
+/* Acciones NUEVAS genéricas para MakeLite-C (manteniendo el estándar del template) */
+extern CompilationStatus SimpleLexemeAction(TokenLabel label);   /* keywords y símbolos */
+extern CompilationStatus TextualLexemeAction(TokenLabel label);  /* IDENT, TEXT */
 
 %}
 
-/**
- * Flex contexts (a.k.a. start conditions).
- *
- * @see https://westes.github.io/flex/manual/Start-Conditions.html
- */
-%x IMPORT_EXPRESSION
+/* Contexto para comentarios multilínea (como el template) */
 %x MULTILINE_COMMENT
 
-/**
- * Reusable patterns.
- *
- * @see https://westes.github.io/flex/manual/Matching.html
- * @see https://westes.github.io/flex/manual/Patterns.html
- */
-whitespace			[[:space:]]+
+/* Patrones reusables */
+whitespace          [[:space:]]+
+
+/* Un átomo de texto sin espacios ni llaves/comas (flags, paths, args, libs, etc.) */
+text_atom           [^[:space:]{},]+
 
 %%
 
-%{
+/* Palabras clave (MakeLite-C) */
+"project"           { return SimpleLexemeAction(PROJECT); }
+"compiler"          { return SimpleLexemeAction(COMPILER); }
+"flags"             { return SimpleLexemeAction(FLAGS); }
+"src"               { return SimpleLexemeAction(SRC); }
+"headers"           { return SimpleLexemeAction(HEADERS); }
+"libs"              { return SimpleLexemeAction(LIBS); }
+"output"            { return SimpleLexemeAction(OUTPUT); }
+"build"             { return SimpleLexemeAction(BUILD); }
+"run"               { return SimpleLexemeAction(RUN); }
+"var"               { return SimpleLexemeAction(VAR); }
+"use"               { return SimpleLexemeAction(USE); }
+"pre_build"         { return SimpleLexemeAction(PRE_BUILD); }
+"post_build"        { return SimpleLexemeAction(POST_BUILD); }
+"clean"             { return SimpleLexemeAction(CLEAN); }
+"test"              { return SimpleLexemeAction(TEST); }
+"target"            { return SimpleLexemeAction(TARGET); }
 
-/**
- * @see https://westes.github.io/flex/manual/Rules-Section.html#Rules-Section
- */
+/* Símbolos */
+"{"                 { return SimpleLexemeAction(OPEN_BRACE); }
+"}"                 { return SimpleLexemeAction(CLOSE_BRACE); }
+","                 { return SimpleLexemeAction(COMMA); }
+"=>"                { return SimpleLexemeAction(ARROW); }
+"="                 { return SimpleLexemeAction(ASSIGN); }
 
-%}
+/* Identificadores (variables, nombres de target/binario) */
+[[:alpha:]_][[:alnum:]_]*   { return TextualLexemeAction(IDENT); }
 
-"{"									{ return EnterImportExpressionLexemeAction(IMPORT_EXPRESSION); }
-<IMPORT_EXPRESSION>[^{}]+			{ return SubexpressionLexemeAction(); }
-<IMPORT_EXPRESSION>"}"				{ return LeaveImportExpressionLexemeAction(); }
-<IMPORT_EXPRESSION>.				{ return UnknownLexemeAction(); }
+/* Texto genérico (flags/paths/args/libs) */
+{text_atom}         { return TextualLexemeAction(TEXT); }
 
-"/*"								{ return EnterMultilineCommentLexemeAction(MULTILINE_COMMENT); }
-<MULTILINE_COMMENT>"*/"				{ return LeaveMultilineCommentLexemeAction(); }
-<MULTILINE_COMMENT>[^*]+			{ return IgnoredLexemeAction(); }
-<MULTILINE_COMMENT>.				{ return IgnoredLexemeAction(); }
+/* Comentarios multilínea (como el template) */
+"/*"                        { return EnterMultilineCommentLexemeAction(MULTILINE_COMMENT); }
+<MULTILINE_COMMENT>"*/"     { return LeaveMultilineCommentLexemeAction(); }
+<MULTILINE_COMMENT>[^*]+    { return IgnoredLexemeAction(); }
+<MULTILINE_COMMENT>.        { return IgnoredLexemeAction(); }
 
-"-"									{ return ArithmeticOperatorLexemeAction(SUB); }
-"*"									{ return ArithmeticOperatorLexemeAction(MUL); }
-"/"									{ return ArithmeticOperatorLexemeAction(DIV); }
-"+"									{ return ArithmeticOperatorLexemeAction(ADD); }
+/* Espacios */
+{whitespace}        { return IgnoredLexemeAction(); }
 
-"("									{ return ParenthesisLexemeAction(OPEN_PARENTHESIS); }
-")"									{ return ParenthesisLexemeAction(CLOSE_PARENTHESIS); }
+/* Desconocido */
+.                   { return UnknownLexemeAction(); }
 
-[[:digit:]]+						{ return IntegerLexemeAction(); }
-
-{whitespace}						{ return IgnoredLexemeAction(); }
-.									{ return UnknownLexemeAction(); }
-
-<<EOF>>								{ return EOFLexemeAction(); }
+/* EOF */
+<<EOF>>             { return EOFLexemeAction(); }
 
 %%
 

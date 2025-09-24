@@ -159,3 +159,29 @@ CompilationStatus UnknownLexemeAction() {
 	destroyToken(token);
 	return FAILED;
 }
+
+// TODO: No borro lo de la calculadora para tenerlo de referencia, despues borrar.
+
+
+static char * _dup_lexeme(Token * token) {
+	char * copy = (char *) calloc(token->length + 1, sizeof(char));
+	memcpy(copy, token->lexeme, token->length);
+	return copy;
+}
+
+CompilationStatus SimpleLexemeAction(TokenLabel label) {
+	Token * token = createToken(_lexicalAnalyzer, label);
+	_logTokenAction(__FUNCTION__, token);
+	CompilationStatus status = pushToken(_lexicalAnalyzer, token);
+	destroyToken(token);
+	return status;
+}
+
+CompilationStatus TextualLexemeAction(TokenLabel label) {
+	Token * token = createToken(_lexicalAnalyzer, label);
+	token->semanticValue->text = _dup_lexeme(token);
+	_logTokenAction(__FUNCTION__, token);
+	CompilationStatus status = pushToken(_lexicalAnalyzer, token);
+	destroyToken(token);
+	return status;
+}
