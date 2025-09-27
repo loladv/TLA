@@ -1,0 +1,5 @@
+project helloWorld
+src { main.c }
+build
+
+run
