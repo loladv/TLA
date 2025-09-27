@@ -19,7 +19,7 @@ ModuleDestructor initializeAbstractSyntaxTreeModule() {
 }
 
 /* PUBLIC FUNCTIONS */
-
+/*
 void destroyConstant(Constant * constant) {
 	logDebugging(_logger, "Executing destructor: %s", __FUNCTION__);
 	if (constant != NULL) {
@@ -67,4 +67,63 @@ void destroyProgram(Program * program) {
 		destroyExpression(program->expression);
 		free(program);
 	}
+}
+*/
+
+void destroyItem(Item * item) {
+    logDebugging(_logger, "Executing destructor: %s", __FUNCTION__);
+    if (item != NULL) {
+        if (item->text != NULL) {
+            free(item->text);
+        }
+        free(item);
+    }
+}
+
+void destroyItemList(ItemList * itemList) {
+    logDebugging(_logger, "Executing destructor: %s", __FUNCTION__);
+    if (itemList != NULL) {
+        destroyItem(itemList->item);
+        destroyItemList(itemList->next);
+        free(itemList);
+    }
+}
+
+void destroyDecl(Decl * decl) {
+    logDebugging(_logger, "Executing destructor: %s", __FUNCTION__);
+    if (decl != NULL) {
+        switch (decl->type) {
+            case PROJECT_DECL:
+                if (decl->projectName != NULL) {
+                    free(decl->projectName);
+                }
+                break;
+            case SRC_DECL:
+                destroyItemList(decl->srcFiles);
+                break;
+            case BUILD_DECL:
+            case RUN_DECL:
+                // No hay datos adicionales que liberar
+                break;
+        }
+        free(decl);
+    }
+}
+
+void destroyDeclList(DeclList * declList) {
+    logDebugging(_logger, "Executing destructor: %s", __FUNCTION__);
+    if (declList != NULL) {
+        destroyDecl(declList->decl);
+        destroyDeclList(declList->next);
+        free(declList);
+    }
+}
+
+void destroyProgram(Program * program) {
+    logDebugging(_logger, "Executing destructor: %s", __FUNCTION__);
+    if (program != NULL) {
+        destroyDecl(program->projectDecl);
+        destroyDeclList(program->sections);
+        free(program);
+    }
 }

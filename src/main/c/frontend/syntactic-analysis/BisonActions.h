@@ -16,11 +16,33 @@ ModuleDestructor initializeBisonActionsModule();
  * Bison semantic actions.
  */
 
+ /*
+
 Constant * IntegerConstantSemanticAction(const int value);
 Expression * ArithmeticExpressionSemanticAction(Expression * leftExpression, Expression * rightExpression, ExpressionType type);
 Expression * FactorExpressionSemanticAction(Factor * factor);
 Factor * ConstantFactorSemanticAction(Constant * constant);
 Factor * ExpressionFactorSemanticAction(Expression * expression);
 Program * ExpressionProgramSemanticAction(Expression * expression);
+
+*/
+
+//TODO: Completar con lo que falta
+/* programa y secciones */
+Program*  MakeProgram(Decl* projectDecl, DeclList* sections);
+Decl*     MakeProjectDecl(char* name);
+DeclList* MakeDeclListEmpty(void);
+DeclList* AddSectionToList(DeclList* xs, Decl* d);
+
+/* src / build / run */
+Decl*     MakeSrcDecl(ItemList* items);
+Decl*     MakeBuildDecl(void);
+Decl*     MakeRunDecl(void);
+
+/* args de src */
+ItemList* MakeArgListEmpty(void);
+ItemList* MakeArgList(char* first);            /* crea lista con 1 item */
+ItemList* AddArgToList(ItemList* xs, char* t); /* agrega item al final */
+
 
 #endif

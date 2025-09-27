@@ -25,16 +25,16 @@ void yyerror(const YYLTYPE * location, const char * message) {}
 
 %union {
 	/** Terminals. */
-
+	signed int integer; //Lo usan algunas de las acciones que vinieron en el template de la calculadora
 	char * text;
-	signed int integer;
 	TokenLabel token;
 
 	/** Non-terminals. */
 
-	Constant * constant;
-	Expression * expression;
-	Factor * factor;
+	Decl* decl;
+	DeclList* decls;
+	Item* item;
+	ItemList* items;
 	Program * program;
 }
 
@@ -46,27 +46,15 @@ void yyerror(const YYLTYPE * location, const char * message) {}
  *
  * @see https://www.gnu.org/software/bison/manual/html_node/Destructor-Decl.html
  */
-%destructor { destroyConstant($$); } <constant>
-%destructor { destroyExpression($$); } <expression>
-%destructor { destroyFactor($$); } <factor>
+
+%destructor { destroyDecl($$); } <decl>
+%destructor { destroyDeclList($$); } <decls>
+%destructor { destroyItem($$); } <item>
+%destructor { destroyItemList($$); } <items>
+
 
 /** Terminals. */
 %token <integer> INTEGER
-%token <token> ADD
-%token <token> CLOSE_BRACE
-%token <token> CLOSE_COMMENT
-%token <token> CLOSE_PARENTHESIS
-%token <token> DIV
-%token <token> MUL
-%token <token> OPEN_BRACE
-%token <token> OPEN_COMMENT
-%token <token> OPEN_PARENTHESIS
-%token <token> SUB
-
-%token <token> IGNORED
-%token <token> UNKNOWN
-
-// TODO: Tokens para makelite-c, dejo los de la calculadora como referencia, despues sacar.
 %token <token> PROJECT
 %token <token> COMPILER
 %token <token> FLAGS
@@ -86,32 +74,48 @@ void yyerror(const YYLTYPE * location, const char * message) {}
 
 %token <token> OPEN_BRACE
 %token <token> CLOSE_BRACE
+%token <token> OPEN_COMMENT
+%token <token> CLOSE_COMMENT
 %token <token> COMMA
 %token <token> ARROW
 %token <token> ASSIGN
 
-%token <token> IDENT
+%token <text> IDENT
 %token <text> TEXT
 
+%token <token> IGNORED
+%token <token> UNKNOWN
 
 /** Non-terminals. */
+/*
 %type <constant> constant
 %type <expression> expression
 %type <factor> factor
 %type <program> program
+*/
 
+//TODO: Completar con lo que falta
+%type  <program> program
+%type  <decl>    project_decl section_decl
+%type  <decls>   section_list_opt
+%type  <items>   src_decl arg_list_opt arg_list
+
+//Lo dejo comentado para ver como se usa si lo necesitaramos
 /**
  * Precedence and associativity.
  *
  * @see https://en.cppreference.com/w/cpp/language/operator_precedence.html
  * @see https://www.gnu.org/software/bison/manual/html_node/Precedence.html
  */
+/*
 %left ADD SUB
 %left MUL DIV
+*/
 
 %%
 
 // IMPORTANT: To use λ in the following grammar, use the %empty symbol.
+/*
 
 program: expression											{ $$ = ExpressionProgramSemanticAction($1); }
 	;
@@ -129,5 +133,50 @@ factor: OPEN_PARENTHESIS expression CLOSE_PARENTHESIS		{ $$ = ExpressionFactorSe
 
 constant: INTEGER											{ $$ = IntegerConstantSemanticAction($1); }
 	;
+
+*/
+
+//TODO: Completar, arriba esta el ejemplo de la calculadora
+
+program
+  : project_decl section_list_opt                { $$ = MakeProgram($1, $2); }
+  ;
+
+project_decl
+  : PROJECT IDENT                                 { $$ = MakeProjectDecl($2); }
+  ;
+
+section_list_opt
+  : /* empty */									{ $$ = MakeDeclListEmpty(); }
+  | section_list_opt section_decl               { $$ = AddSectionToList($1, $2); }
+  ;
+
+section_decl
+  : src_decl                                     { $$ = MakeSrcDecl($1); }
+  | build_decl                                   { $$ = MakeBuildDecl(); }
+  | run_decl                                     { $$ = MakeRunDecl(); }
+  ;
+
+src_decl
+  : SRC OPEN_BRACE arg_list_opt CLOSE_BRACE     { $$ = $3; }
+  ;
+
+build_decl : BUILD ;
+
+run_decl   : RUN   ;
+
+arg_list_opt
+  : arg_list                                     { $$ = $1; }
+  | /* empty */                                  { $$ = MakeArgListEmpty(); }
+  ;
+
+arg_list
+  : arg_list IDENT                               { $$ = AddArgToList($1, $2); }
+  | arg_list TEXT                                { $$ = AddArgToList($1, $2); }
+  | arg_list COMMA IDENT                         { $$ = AddArgToList($1, $3); }
+  | arg_list COMMA TEXT                          { $$ = AddArgToList($1, $3); }
+  | IDENT                                        { $$ = MakeArgList($1); }
+  | TEXT                                         { $$ = MakeArgList($1); }
+  ;
 
 %%

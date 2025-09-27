@@ -36,6 +36,8 @@ static void _logSyntacticAnalyzerAction(const char * functionName) {
 
 /* PUBLIC FUNCTIONS */
 
+/*
+
 Constant * IntegerConstantSemanticAction(const int value) {
 	_logSyntacticAnalyzerAction(__FUNCTION__);
 	Constant * constant = calloc(1, sizeof(Constant));
@@ -82,4 +84,90 @@ Program * ExpressionProgramSemanticAction(Expression * expression) {
 	program->expression = expression;
 	_compilerState->abstractSyntaxtTree = program;
 	return program;
+}
+
+*/
+
+//TODO: Completar con lo que falta
+
+Program* MakeProgram(Decl* projectDecl, DeclList* sections){
+	_logSyntacticAnalyzerAction(__FUNCTION__);
+	Program * program = calloc(1, sizeof(Program));
+	program->projectDecl = projectDecl;
+	program->sections = sections;
+	return program;
+}
+
+Decl* MakeProjectDecl(char* name){
+	_logSyntacticAnalyzerAction(__FUNCTION__);
+	Decl * decl = calloc(1, sizeof(Decl));
+	decl->type = PROJECT_DECL;
+	decl->projectName = name;
+	return decl;
+}
+
+DeclList* MakeDeclListEmpty(void){
+	_logSyntacticAnalyzerAction(__FUNCTION__);
+	return NULL;
+}
+
+DeclList* AddSectionToList(DeclList* xs, Decl* d){
+	_logSyntacticAnalyzerAction(__FUNCTION__);
+	DeclList * node = calloc(1, sizeof(DeclList));
+	node->decl = d;
+	node->next = NULL;
+	if (!xs) return node;
+	DeclList* cur = xs;
+	while (cur->next) cur = cur->next;
+	cur->next = node;
+	return xs;
+}
+
+Decl* MakeSrcDecl(ItemList* items){
+	_logSyntacticAnalyzerAction(__FUNCTION__);
+	Decl * decl = calloc(1, sizeof(Decl));
+	decl->type = SRC_DECL;
+	decl->srcFiles = items;
+	return decl;
+}
+
+Decl* MakeBuildDecl(void){
+	_logSyntacticAnalyzerAction(__FUNCTION__);
+	Decl * decl = calloc(1, sizeof(Decl));
+	decl->type = BUILD_DECL;
+	return decl;
+}
+
+Decl* MakeRunDecl(void){
+	_logSyntacticAnalyzerAction(__FUNCTION__);
+	Decl * decl = calloc(1, sizeof(Decl));
+	decl->type = RUN_DECL;
+	return decl;
+}
+
+ItemList* MakeArgListEmpty(void){
+	_logSyntacticAnalyzerAction(__FUNCTION__);
+	return NULL;
+}
+
+ItemList* MakeArgList(char* first){
+	_logSyntacticAnalyzerAction(__FUNCTION__);
+	ItemList * itemList = calloc(1, sizeof(ItemList));
+	itemList->item = calloc(1, sizeof(Item));
+	itemList->item->text = first;
+	itemList->next = NULL;
+	return itemList;
+}
+
+ItemList* AddArgToList(ItemList* xs, char* t){
+    _logSyntacticAnalyzerAction(__FUNCTION__);
+    ItemList * node = calloc(1, sizeof(ItemList));
+    node->item = calloc(1, sizeof(Item));
+    node->item->text = t;
+    node->next = NULL;
+    if (!xs) return node;
+    ItemList* cur = xs;
+    while (cur->next) cur = cur->next;
+    cur->next = node;
+    return xs;
 }
