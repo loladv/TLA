@@ -8,12 +8,13 @@
 
 }
 
+%option yylineno
+
 %{
 
 /**
  * @see https://westes.github.io/flex/manual/Definitions-Section.html#Definitions-Section
  */
-%option yylineno
 
 /* Acciones existentes del template */
 extern CompilationStatus EOFLexemeAction();
@@ -37,9 +38,9 @@ whitespace          [[:space:]]+
 /* Un átomo de texto sin espacios ni llaves/comas (flags, paths, args, libs, etc.) */
 text_atom           [^[:space:]{},]+
 
+/* Palabras clave (MakeLite-C) */
 %%
 
-/* Palabras clave (MakeLite-C) */
 "project"           { return SimpleLexemeAction(PROJECT); }
 "compiler"          { return SimpleLexemeAction(COMPILER); }
 "flags"             { return SimpleLexemeAction(FLAGS); }
@@ -57,32 +58,27 @@ text_atom           [^[:space:]{},]+
 "test"              { return SimpleLexemeAction(TEST); }
 "target"            { return SimpleLexemeAction(TARGET); }
 
-/* Símbolos */
 "{"                 { return SimpleLexemeAction(OPEN_BRACE); }
 "}"                 { return SimpleLexemeAction(CLOSE_BRACE); }
 ","                 { return SimpleLexemeAction(COMMA); }
 "=>"                { return SimpleLexemeAction(ARROW); }
 "="                 { return SimpleLexemeAction(ASSIGN); }
 
-/* Identificadores (variables, nombres de target/binario) */
 [[:alpha:]_][[:alnum:]_]*   { return TextualLexemeAction(IDENT); }
 
-/* Texto genérico (flags/paths/args/libs) */
-{text_atom}         { return TextualLexemeAction(TEXT); }
+"//[^\n]*"                         { return IgnoredLexemeAction(); }
 
-/* Comentarios multilínea (como el template) */
 "/*"                        { return EnterMultilineCommentLexemeAction(MULTILINE_COMMENT); }
 <MULTILINE_COMMENT>"*/"     { return LeaveMultilineCommentLexemeAction(); }
 <MULTILINE_COMMENT>[^*]+    { return IgnoredLexemeAction(); }
 <MULTILINE_COMMENT>.        { return IgnoredLexemeAction(); }
 
-/* Espacios */
 {whitespace}        { return IgnoredLexemeAction(); }
 
-/* Desconocido */
+{text_atom}         { return TextualLexemeAction(TEXT); }
+
 .                   { return UnknownLexemeAction(); }
 
-/* EOF */
 <<EOF>>             { return EOFLexemeAction(); }
 
 %%
