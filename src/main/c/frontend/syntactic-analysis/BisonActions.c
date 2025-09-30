@@ -95,6 +95,10 @@ Program* MakeProgram(Decl* projectDecl, DeclList* sections){
 	Program * program = calloc(1, sizeof(Program));
 	program->projectDecl = projectDecl;
 	program->sections = sections;
+    // Expose AST to the rest of the compiler phases
+    if (_compilerState != NULL) {
+        _compilerState->abstractSyntaxtTree = program;
+    }
 	return program;
 }
 
@@ -128,6 +132,14 @@ Decl* MakeSrcDecl(ItemList* items){
 	Decl * decl = calloc(1, sizeof(Decl));
 	decl->type = SRC_DECL;
 	decl->srcFiles = items;
+	return decl;
+}
+
+Decl* MakeFlagsDecl(ItemList* flags){
+	_logSyntacticAnalyzerAction(__FUNCTION__);
+	Decl * decl = calloc(1, sizeof(Decl));
+	decl->type = FLAGS_DECL;
+	decl->flags = flags;
 	return decl;
 }
 

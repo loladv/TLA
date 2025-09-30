@@ -10,7 +10,7 @@
 #include <stdlib.h>
 
 /** Initialize module's internal state. */
-ModuleDestructor initializeBisonActionsModule();
+ModuleDestructor initializeBisonActionsModule(CompilerState * compilerState);
 
 /**
  * Bison semantic actions.
@@ -34,12 +34,13 @@ Decl*     MakeProjectDecl(char* name);
 DeclList* MakeDeclListEmpty(void);
 DeclList* AddSectionToList(DeclList* xs, Decl* d);
 
-/* src / build / run */
+/* src / flags / build / run */
 Decl*     MakeSrcDecl(ItemList* items);
+Decl*     MakeFlagsDecl(ItemList* flags);
 Decl*     MakeBuildDecl(void);
 Decl*     MakeRunDecl(void);
 
-/* args de src */
+/* args de src/flags */
 ItemList* MakeArgListEmpty(void);
 ItemList* MakeArgList(char* first);            /* crea lista con 1 item */
 ItemList* AddArgToList(ItemList* xs, char* t); /* agrega item al final */

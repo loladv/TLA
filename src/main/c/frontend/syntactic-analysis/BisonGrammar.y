@@ -49,7 +49,6 @@ void yyerror(const YYLTYPE * location, const char * message) {}
 
 %destructor { destroyDecl($$); } <decl>
 %destructor { destroyDeclList($$); } <decls>
-%destructor { destroyItem($$); } <item>
 %destructor { destroyItemList($$); } <items>
 
 
@@ -98,7 +97,7 @@ void yyerror(const YYLTYPE * location, const char * message) {}
 %type  <program> program
 %type  <decl>    project_decl section_decl
 %type  <decls>   section_list_opt
-%type  <items>   src_decl arg_list_opt arg_list
+%type  <items>   src_decl flags_decl arg_list_opt arg_list
 
 //Lo dejo comentado para ver como se usa si lo necesitaramos
 /**
@@ -153,12 +152,17 @@ section_list_opt
 
 section_decl
   : src_decl                                     { $$ = MakeSrcDecl($1); }
+  | flags_decl                                   { $$ = MakeFlagsDecl($1); }
   | build_decl                                   { $$ = MakeBuildDecl(); }
   | run_decl                                     { $$ = MakeRunDecl(); }
   ;
 
 src_decl
   : SRC OPEN_BRACE arg_list_opt CLOSE_BRACE     { $$ = $3; }
+  ;
+
+flags_decl
+  : FLAGS OPEN_BRACE arg_list_opt CLOSE_BRACE   { $$ = $3; }
   ;
 
 build_decl : BUILD ;

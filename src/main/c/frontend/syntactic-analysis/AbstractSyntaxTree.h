@@ -100,6 +100,7 @@ typedef struct Program Program;
 enum DeclType {
     PROJECT_DECL,    // project helloWorld
     SRC_DECL,        // src { main.c }
+    FLAGS_DECL,      // flags { -O2, -Wall }
     BUILD_DECL,      // build
     RUN_DECL         // run
 };
@@ -118,6 +119,9 @@ struct Decl {
         };
         struct {
             ItemList * srcFiles;      // SRC: { main.c }
+        };
+        struct {
+            ItemList * flags;         // FLAGS: { -O2, -Wall }
         };
         // BUILD y RUN no necesitan datos adicionales
     };

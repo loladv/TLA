@@ -1,0 +1,6 @@
+project helloWorld
+src { main.c }
+flags -O2, -Wall   
+build
+
+run

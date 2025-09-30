@@ -101,6 +101,9 @@ void destroyDecl(Decl * decl) {
             case SRC_DECL:
                 destroyItemList(decl->srcFiles);
                 break;
+            case FLAGS_DECL:
+                destroyItemList(decl->flags);
+                break;
             case BUILD_DECL:
             case RUN_DECL:
                 // No hay datos adicionales que liberar
