@@ -95,9 +95,10 @@ void yyerror(const YYLTYPE * location, const char * message) {}
 
 //TODO: Completar con lo que falta
 %type  <program> program
-%type  <decl>    project_decl section_decl
+%type  <decl>    project_decl section_decl var_decl
+%type  <text>    compiler_decl
 %type  <decls>   section_list_opt
-%type  <items>   src_decl flags_decl arg_list_opt arg_list
+%type  <items>   src_decl flags_decl libs_decl arg_list_opt arg_list use_items
 
 //Lo dejo comentado para ver como se usa si lo necesitaramos
 /**
@@ -138,7 +139,12 @@ constant: INTEGER											{ $$ = IntegerConstantSemanticAction($1); }
 //TODO: Completar, arriba esta el ejemplo de la calculadora
 
 program
-  : project_decl section_list_opt                { $$ = MakeProgram($1, $2); }
+  : var_decl_list_opt project_decl section_list_opt  { $$ = MakeProgram($2, $3); }
+  ;
+
+var_decl_list_opt
+  : /* empty */
+  | var_decl_list_opt var_decl
   ;
 
 project_decl
@@ -152,6 +158,8 @@ section_list_opt
 
 section_decl
   : src_decl                                     { $$ = MakeSrcDecl($1); }
+  | libs_decl                                    { $$ = MakeLibsDecl($1); }
+  | compiler_decl                                { $$ = MakeCompilerDecl($1); }
   | flags_decl                                   { $$ = MakeFlagsDecl($1); }
   | build_decl                                   { $$ = MakeBuildDecl(); }
   | run_decl                                     { $$ = MakeRunDecl(); }
@@ -163,6 +171,15 @@ src_decl
 
 flags_decl
   : FLAGS OPEN_BRACE arg_list_opt CLOSE_BRACE   { $$ = $3; }
+  ;
+
+libs_decl
+  : LIBS OPEN_BRACE arg_list_opt CLOSE_BRACE    { $$ = $3; }
+  ;
+
+compiler_decl
+  : COMPILER IDENT                               { $$ = $2; }
+  | COMPILER TEXT                                { $$ = $2; }
   ;
 
 build_decl : BUILD ;
@@ -177,10 +194,21 @@ arg_list_opt
 arg_list
   : arg_list IDENT                               { $$ = AddArgToList($1, $2); }
   | arg_list TEXT                                { $$ = AddArgToList($1, $2); }
+  | arg_list use_items                           { $$ = ConcatItemLists($1, $2); }
   | arg_list COMMA IDENT                         { $$ = AddArgToList($1, $3); }
   | arg_list COMMA TEXT                          { $$ = AddArgToList($1, $3); }
+  | arg_list COMMA use_items                     { $$ = ConcatItemLists($1, $3); }
   | IDENT                                        { $$ = MakeArgList($1); }
   | TEXT                                         { $$ = MakeArgList($1); }
+  | use_items                                    { $$ = $1; }
+  ;
+
+use_items
+  : USE IDENT                                    { $$ = UseVar($2); }
+  ;
+
+var_decl
+  : VAR IDENT ASSIGN arg_list_opt                { VarAssign($2, $4); $$ = NULL; }
   ;
 
 %%

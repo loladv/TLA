@@ -100,6 +100,8 @@ typedef struct Program Program;
 enum DeclType {
     PROJECT_DECL,    // project helloWorld
     SRC_DECL,        // src { main.c }
+    COMPILER_DECL,   // compiler clang
+    LIBS_DECL,       // libs { m pthread }
     FLAGS_DECL,      // flags { -O2, -Wall }
     BUILD_DECL,      // build
     RUN_DECL         // run
@@ -119,6 +121,12 @@ struct Decl {
         };
         struct {
             ItemList * srcFiles;      // SRC: { main.c }
+        };
+        struct {
+            char * compilerName;      // COMPILER: clang/gcc
+        };
+        struct {
+            ItemList * libs;          // LIBS: { m pthread }
         };
         struct {
             ItemList * flags;         // FLAGS: { -O2, -Wall }

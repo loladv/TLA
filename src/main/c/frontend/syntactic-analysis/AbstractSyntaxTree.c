@@ -101,6 +101,14 @@ void destroyDecl(Decl * decl) {
             case SRC_DECL:
                 destroyItemList(decl->srcFiles);
                 break;
+            case COMPILER_DECL:
+                if (decl->compilerName != NULL) {
+                    free(decl->compilerName);
+                }
+                break;
+            case LIBS_DECL:
+                destroyItemList(decl->libs);
+                break;
             case FLAGS_DECL:
                 destroyItemList(decl->flags);
                 break;

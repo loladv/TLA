@@ -1,0 +1,5 @@
+project p
+libs { m pthread }
+build
+
+

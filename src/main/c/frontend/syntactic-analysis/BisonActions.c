@@ -1,9 +1,21 @@
 #include "BisonActions.h"
+#include <string.h>
 
 /* MODULE INTERNAL STATE */
 
 static CompilerState * _compilerState = NULL;
 static Logger * _logger = NULL;
+
+// Simple variable table for var/use
+typedef struct VarBinding {
+    char * name;
+    ItemList * value; // owned list
+    struct VarBinding * next;
+} VarBinding;
+static VarBinding * _vars = NULL;
+
+// Forward declarations
+static void _freeVarTable(void);
 
 /** Shutdown module's internal state. */
 void _shutdownBisonActionsModule() {
@@ -12,7 +24,8 @@ void _shutdownBisonActionsModule() {
 		destroyLogger(_logger);
 		_logger = NULL;
 	}
-	_compilerState = NULL;
+    _freeVarTable();
+    _compilerState = NULL;
 }
 
 ModuleDestructor initializeBisonActionsModule(CompilerState * compilerState) {
@@ -32,6 +45,25 @@ static void _logSyntacticAnalyzerAction(const char * functionName);
  */
 static void _logSyntacticAnalyzerAction(const char * functionName) {
 	logDebugging(_logger, "%s", functionName);
+}
+
+static char * _dup(const char * s) {
+    size_t n = strlen(s);
+    char * c = calloc(n + 1, 1);
+    memcpy(c, s, n);
+    return c;
+}
+
+static void _freeVarTable(void) {
+    VarBinding * v = _vars;
+    while (v) {
+        VarBinding * nxt = v->next;
+        if (v->name) free(v->name);
+        destroyItemList(v->value);
+        free(v);
+        v = nxt;
+    }
+    _vars = NULL;
 }
 
 /* PUBLIC FUNCTIONS */
@@ -182,4 +214,70 @@ ItemList* AddArgToList(ItemList* xs, char* t){
     while (cur->next) cur = cur->next;
     cur->next = node;
     return xs;
+}
+
+ItemList* ConcatItemLists(ItemList* xs, ItemList* ys){
+    _logSyntacticAnalyzerAction(__FUNCTION__);
+    if (!xs) return ys;
+    ItemList* cur = xs;
+    while (cur->next) cur = cur->next;
+    cur->next = ys;
+    return xs;
+}
+
+Decl* MakeLibsDecl(ItemList* libs){
+    _logSyntacticAnalyzerAction(__FUNCTION__);
+    Decl * decl = calloc(1, sizeof(Decl));
+    decl->type = LIBS_DECL;
+    decl->libs = libs;
+    return decl;
+}
+
+Decl* MakeCompilerDecl(char* compiler){
+    _logSyntacticAnalyzerAction(__FUNCTION__);
+    Decl * decl = calloc(1, sizeof(Decl));
+    decl->type = COMPILER_DECL;
+    decl->compilerName = compiler;
+    return decl;
+}
+
+void VarAssign(char* name, ItemList* value){
+    _logSyntacticAnalyzerAction(__FUNCTION__);
+    // overwrite if exists
+    for (VarBinding* v = _vars; v; v = v->next) {
+        if (strcmp(v->name, name) == 0) {
+            destroyItemList(v->value);
+            v->value = value;
+            free(name);
+            return;
+        }
+    }
+    VarBinding* nb = calloc(1, sizeof(VarBinding));
+    nb->name = name;
+    nb->value = value;
+    nb->next = _vars;
+    _vars = nb;
+}
+
+ItemList* UseVar(char* name){
+    _logSyntacticAnalyzerAction(__FUNCTION__);
+    for (VarBinding* v = _vars; v; v = v->next) {
+        if (strcmp(v->name, name) == 0) {
+            // deep copy list
+            ItemList* head = NULL;
+            ItemList* tail = NULL;
+            for (ItemList* it = v->value; it; it = it->next) {
+                ItemList* node = calloc(1, sizeof(ItemList));
+                node->item = calloc(1, sizeof(Item));
+                node->item->text = _dup(it->item->text);
+                if (!head) head = node; else tail->next = node;
+                tail = node;
+            }
+            free(name);
+            return head;
+        }
+    }
+    // undefined var -> empty list
+    free(name);
+    return NULL;
 }

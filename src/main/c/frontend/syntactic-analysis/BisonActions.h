@@ -34,16 +34,23 @@ Decl*     MakeProjectDecl(char* name);
 DeclList* MakeDeclListEmpty(void);
 DeclList* AddSectionToList(DeclList* xs, Decl* d);
 
-/* src / flags / build / run */
+/* src / flags / libs / compiler / build / run */
 Decl*     MakeSrcDecl(ItemList* items);
 Decl*     MakeFlagsDecl(ItemList* flags);
+Decl*     MakeLibsDecl(ItemList* libs);
+Decl*     MakeCompilerDecl(char* compiler);
 Decl*     MakeBuildDecl(void);
 Decl*     MakeRunDecl(void);
 
-/* args de src/flags */
+/* args de src/flags/libs and var expansion */
 ItemList* MakeArgListEmpty(void);
 ItemList* MakeArgList(char* first);            /* crea lista con 1 item */
 ItemList* AddArgToList(ItemList* xs, char* t); /* agrega item al final */
+ItemList* ConcatItemLists(ItemList* xs, ItemList* ys); /* concatena dos listas */
+
+/* variables */
+void      VarAssign(char* name, ItemList* value);
+ItemList* UseVar(char* name);
 
 
 #endif

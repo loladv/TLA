@@ -1,0 +1,6 @@
+var X = a b c
+project p
+src { use X }
+build
+
+
