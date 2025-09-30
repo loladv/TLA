@@ -5,6 +5,7 @@
 
 static CompilerState * _compilerState = NULL;
 static Logger * _logger = NULL;
+static bool _semanticError = false;
 
 // Simple variable table for var/use
 typedef struct VarBinding {
@@ -31,7 +32,11 @@ void _shutdownBisonActionsModule() {
 ModuleDestructor initializeBisonActionsModule(CompilerState * compilerState) {
 	_compilerState = compilerState;
 	_logger = createLogger("BisonActions");
+    _semanticError = false;
 	return _shutdownBisonActionsModule;
+}
+bool HasSemanticError(void) {
+    return _semanticError;
 }
 
 /* IMPORTED FUNCTIONS */
@@ -130,6 +135,20 @@ Program* MakeProgram(Decl* projectDecl, DeclList* sections){
     // Expose AST to the rest of the compiler phases
     if (_compilerState != NULL) {
         _compilerState->abstractSyntaxtTree = program;
+    }
+    // Check at least one SRC_DECL with non-empty items
+    bool hasSrc = false;
+    for (DeclList* it = sections; it != NULL; it = it->next) {
+        if (it->decl && it->decl->type == SRC_DECL) {
+            if (it->decl->srcFiles != NULL) {
+                hasSrc = true;
+                break;
+            }
+        }
+    }
+    if (!hasSrc) {
+        logError(_logger, "No source files declared (missing or empty src section).");
+        _semanticError = true;
     }
 	return program;
 }
@@ -277,7 +296,9 @@ ItemList* UseVar(char* name){
             return head;
         }
     }
-    // undefined var -> empty list
+    // undefined var -> semantic error
+    logError(_logger, "Use of undefined variable '%s'", name);
+    _semanticError = true;
     free(name);
     return NULL;
 }

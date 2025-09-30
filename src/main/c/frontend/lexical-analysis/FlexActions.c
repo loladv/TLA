@@ -1,4 +1,6 @@
 #include "FlexActions.h"
+/* IMPORTED FROM PARSER ACTIONS FOR SEMANTIC ERRORS */
+extern bool HasSemanticError();
 
 /* MODULE INTERNAL STATE */
 
@@ -85,7 +87,13 @@ CompilationStatus EOFLexemeAction() {
 	Token * token = createToken(_lexicalAnalyzer, 0);
 	_logTokenAction(__FUNCTION__, token);
 	if (!popInputBuffer(_lexicalAnalyzer)) {
-		status = pushToken(_lexicalAnalyzer, token);
+        /* If there was a semantic error during parsing, fail compilation */
+        if (HasSemanticError()) {
+            status = FAILED;
+        }
+        else {
+            status = pushToken(_lexicalAnalyzer, token);
+        }
 		FlexContext context = currentLexicalAnalyzerContext(_lexicalAnalyzer);
 		if (0 < context) {
 			logError(_logger, "The final context is not closed (context=%d).", context);

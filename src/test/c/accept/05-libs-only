@@ -1,5 +1,6 @@
 project p
 libs { m pthread }
+src { main.c }
 build
 
 

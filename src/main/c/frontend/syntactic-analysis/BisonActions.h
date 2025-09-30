@@ -11,6 +11,7 @@
 
 /** Initialize module's internal state. */
 ModuleDestructor initializeBisonActionsModule(CompilerState * compilerState);
+bool HasSemanticError(void);
 
 /**
  * Bison semantic actions.

@@ -1,0 +1,5 @@
+project p
+src { use NOT_DEFINED }
+build
+
+

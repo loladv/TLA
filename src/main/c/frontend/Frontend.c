@@ -27,6 +27,7 @@ extern bool flexHasBuffer(LexicalAnalyzer * lexicalAnalyzer);
 extern FlexContext flexCurrentContext(LexicalAnalyzer * lexicalAnalyzer);
 extern void flexEnterContext(LexicalAnalyzer * lexicalAnalyzer, FlexContext flexContext);
 extern void flexLeaveContext(LexicalAnalyzer * lexicalAnalyzer);
+extern bool HasSemanticError();
 
 /* PRIVATE FUNCTIONS */
 
@@ -158,6 +159,9 @@ CompilationStatus executeSyntacticAnalysis() {
 	while (status == IN_PROGRESS) {
 		status = executeLexicalAnalysis(_lexicalAnalyzer);
 	}
+    if (status == SUCCEEDED && HasSemanticError()) {
+        status = FAILED;
+    }
 	logDebugging(_logger, "Compilation status: %s.", _compilationStatusAsString(status));
 	logDebugging(_logger, "Parsing is done.");
 	return status;
