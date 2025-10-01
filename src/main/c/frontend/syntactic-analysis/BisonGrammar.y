@@ -96,9 +96,9 @@ void yyerror(const YYLTYPE * location, const char * message) {}
 //TODO: Completar con lo que falta
 %type  <program> program
 %type  <decl>    project_decl section_decl var_decl
-%type  <text>    compiler_decl
+%type  <text>    compiler_decl output_decl
 %type  <decls>   section_list_opt
-%type  <items>   src_decl flags_decl libs_decl arg_list_opt arg_list use_items
+%type  <items>   src_decl flags_decl libs_decl headers_decl pre_build_decl post_build_decl arg_list_opt arg_list use_items
 
 //Lo dejo comentado para ver como se usa si lo necesitaramos
 /**
@@ -160,7 +160,11 @@ section_decl
   : src_decl                                     { $$ = MakeSrcDecl($1); }
   | libs_decl                                    { $$ = MakeLibsDecl($1); }
   | compiler_decl                                { $$ = MakeCompilerDecl($1); }
+  | headers_decl                                 { $$ = MakeHeadersDecl($1); }
+  | output_decl                                  { $$ = MakeOutputDecl($1); }
   | flags_decl                                   { $$ = MakeFlagsDecl($1); }
+  | pre_build_decl                               { $$ = MakePreBuildDecl($1); }
+  | post_build_decl                              { $$ = MakePostBuildDecl($1); }
   | build_decl                                   { $$ = MakeBuildDecl(); }
   | run_decl                                     { $$ = MakeRunDecl(); }
   ;
@@ -175,6 +179,22 @@ flags_decl
 
 libs_decl
   : LIBS OPEN_BRACE arg_list_opt CLOSE_BRACE    { $$ = $3; }
+  ;
+headers_decl
+  : HEADERS OPEN_BRACE arg_list_opt CLOSE_BRACE { $$ = $3; }
+  ;
+
+output_decl
+  : OUTPUT IDENT                                 { $$ = $2; }
+  | OUTPUT TEXT                                  { $$ = $2; }
+  ;
+
+pre_build_decl
+  : PRE_BUILD OPEN_BRACE arg_list_opt CLOSE_BRACE { $$ = $3; }
+  ;
+
+post_build_decl
+  : POST_BUILD OPEN_BRACE arg_list_opt CLOSE_BRACE { $$ = $3; }
   ;
 
 compiler_decl

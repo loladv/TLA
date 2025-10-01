@@ -40,6 +40,10 @@ Decl*     MakeSrcDecl(ItemList* items);
 Decl*     MakeFlagsDecl(ItemList* flags);
 Decl*     MakeLibsDecl(ItemList* libs);
 Decl*     MakeCompilerDecl(char* compiler);
+Decl*     MakeHeadersDecl(ItemList* headers);
+Decl*     MakeOutputDecl(char* outputName);
+Decl*     MakePreBuildDecl(ItemList* commands);
+Decl*     MakePostBuildDecl(ItemList* commands);
 Decl*     MakeBuildDecl(void);
 Decl*     MakeRunDecl(void);
 

@@ -31,6 +31,7 @@ extern CompilationStatus TextualLexemeAction(TokenLabel label);  /* IDENT, TEXT 
 
 /* Contexto para comentarios multilínea (como el template) */
 %x MULTILINE_COMMENT
+%x COMMANDS
 
 /* Patrones reusables */
 whitespace          [[:space:]]+
@@ -52,12 +53,14 @@ text_atom           [^[:space:]{},]+
 "run"               { return SimpleLexemeAction(RUN); }
 "var"               { return SimpleLexemeAction(VAR); }
 "use"               { return SimpleLexemeAction(USE); }
-"pre_build"         { return SimpleLexemeAction(PRE_BUILD); }
-"post_build"        { return SimpleLexemeAction(POST_BUILD); }
+"pre_build"         { BEGIN(COMMANDS); return SimpleLexemeAction(PRE_BUILD); }
+"post_build"        { BEGIN(COMMANDS); return SimpleLexemeAction(POST_BUILD); }
 "clean"             { return SimpleLexemeAction(CLEAN); }
 "test"              { return SimpleLexemeAction(TEST); }
 "target"            { return SimpleLexemeAction(TARGET); }
 
+<COMMANDS>"{"       { return SimpleLexemeAction(OPEN_BRACE); }
+<COMMANDS>"}"       { BEGIN(INITIAL); return SimpleLexemeAction(CLOSE_BRACE); }
 "{"                 { return SimpleLexemeAction(OPEN_BRACE); }
 "}"                 { return SimpleLexemeAction(CLOSE_BRACE); }
 ","                 { return SimpleLexemeAction(COMMA); }
@@ -67,6 +70,8 @@ text_atom           [^[:space:]{},]+
 [[:alpha:]_][[:alnum:]_]*   { return TextualLexemeAction(IDENT); }
 
 "//[^\n]*"                         { return IgnoredLexemeAction(); }
+<COMMANDS>\n                        { return IgnoredLexemeAction(); }
+<COMMANDS>{whitespace}           { return IgnoredLexemeAction(); }
 
 "/*"                        { return EnterMultilineCommentLexemeAction(MULTILINE_COMMENT); }
 <MULTILINE_COMMENT>"*/"     { return LeaveMultilineCommentLexemeAction(); }
@@ -75,6 +80,7 @@ text_atom           [^[:space:]{},]+
 
 {whitespace}        { return IgnoredLexemeAction(); }
 
+<COMMANDS>[^\n{}[:space:]]+   { return TextualLexemeAction(TEXT); }
 {text_atom}         { return TextualLexemeAction(TEXT); }
 
 .                   { return UnknownLexemeAction(); }

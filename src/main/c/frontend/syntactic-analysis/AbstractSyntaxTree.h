@@ -102,6 +102,10 @@ enum DeclType {
     SRC_DECL,        // src { main.c }
     COMPILER_DECL,   // compiler clang
     LIBS_DECL,       // libs { m pthread }
+    HEADERS_DECL,    // headers { include/ }
+    OUTPUT_DECL,     // output myapp
+    PRE_BUILD_DECL,  // pre_build { cmds }
+    POST_BUILD_DECL, // post_build { cmds }
     FLAGS_DECL,      // flags { -O2, -Wall }
     BUILD_DECL,      // build
     RUN_DECL         // run
@@ -127,6 +131,12 @@ struct Decl {
         };
         struct {
             ItemList * libs;          // LIBS: { m pthread }
+        };
+        struct {
+            ItemList * headers;       // HEADERS: { include/ }
+        };
+        struct {
+            char * outputName;        // OUTPUT: myapp
         };
         struct {
             ItemList * flags;         // FLAGS: { -O2, -Wall }

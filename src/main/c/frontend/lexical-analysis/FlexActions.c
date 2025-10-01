@@ -62,6 +62,7 @@ CompilationStatus ArithmeticOperatorLexemeAction(TokenLabel label) {
 	return status;
 }
 
+
 CompilationStatus EnterImportExpressionLexemeAction(FlexContext context) {
 	if (_logIgnoredLexemes) {
 		Token * token = createToken(_lexicalAnalyzer, OPEN_BRACE);
@@ -144,11 +145,11 @@ CompilationStatus LeaveMultilineCommentLexemeAction() {
 }
 
 CompilationStatus ParenthesisLexemeAction(TokenLabel label) {
-	Token * token = createToken(_lexicalAnalyzer, label);
-	_logTokenAction(__FUNCTION__, token);
-	CompilationStatus status = pushToken(_lexicalAnalyzer, token);
-	destroyToken(token);
-	return status;
+    Token * token = createToken(_lexicalAnalyzer, label);
+    _logTokenAction(__FUNCTION__, token);
+    CompilationStatus status = pushToken(_lexicalAnalyzer, token);
+    destroyToken(token);
+    return status;
 }
 
 CompilationStatus SubexpressionLexemeAction() {
@@ -193,3 +194,5 @@ CompilationStatus TextualLexemeAction(TokenLabel label) {
 	destroyToken(token);
 	return status;
 }
+
+/* no-op helpers removed; command blocks handled in Flex start conditions */

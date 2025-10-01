@@ -1,0 +1,9 @@
+project p
+compiler gcc
+flags { -O2 }
+headers { include/ }
+src { main.c }
+output myapp
+build
+
+

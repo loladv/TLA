@@ -109,8 +109,21 @@ void destroyDecl(Decl * decl) {
             case LIBS_DECL:
                 destroyItemList(decl->libs);
                 break;
+            case HEADERS_DECL:
+                destroyItemList(decl->headers);
+                break;
+            case OUTPUT_DECL:
+                if (decl->outputName != NULL) {
+                    free(decl->outputName);
+                }
+                break;
             case FLAGS_DECL:
                 destroyItemList(decl->flags);
+                break;
+            case PRE_BUILD_DECL:
+            case POST_BUILD_DECL:
+                // Commands stored as ItemList (reusing list structure)
+                destroyItemList(decl->headers);
                 break;
             case BUILD_DECL:
             case RUN_DECL:

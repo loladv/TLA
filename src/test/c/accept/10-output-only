@@ -1,0 +1,6 @@
+project p
+output myapp
+src { main.c }
+build
+
+

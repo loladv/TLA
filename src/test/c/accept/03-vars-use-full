@@ -2,7 +2,7 @@ var OPTS = -Wall -g
 var FILES = main.c util.c
 project utils
 compiler clang
-flags { use OPTS }
+flags { use OPTS -lm }
 src { use FILES }
 libs { m }
 build

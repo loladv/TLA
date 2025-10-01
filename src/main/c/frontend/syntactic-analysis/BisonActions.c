@@ -260,6 +260,39 @@ Decl* MakeCompilerDecl(char* compiler){
     return decl;
 }
 
+Decl* MakeHeadersDecl(ItemList* headers){
+    _logSyntacticAnalyzerAction(__FUNCTION__);
+    Decl * decl = calloc(1, sizeof(Decl));
+    decl->type = HEADERS_DECL;
+    decl->headers = headers;
+    return decl;
+}
+
+Decl* MakeOutputDecl(char* outputName){
+    _logSyntacticAnalyzerAction(__FUNCTION__);
+    Decl * decl = calloc(1, sizeof(Decl));
+    decl->type = OUTPUT_DECL;
+    decl->outputName = outputName;
+    return decl;
+}
+
+Decl* MakePreBuildDecl(ItemList* commands){
+    _logSyntacticAnalyzerAction(__FUNCTION__);
+    Decl * decl = calloc(1, sizeof(Decl));
+    decl->type = PRE_BUILD_DECL;
+    // reuse ItemList for commands (each item->text is a token/word)
+    decl->headers = commands; // temporary reuse field not ideal; but AST has separate union members
+    return decl;
+}
+
+Decl* MakePostBuildDecl(ItemList* commands){
+    _logSyntacticAnalyzerAction(__FUNCTION__);
+    Decl * decl = calloc(1, sizeof(Decl));
+    decl->type = POST_BUILD_DECL;
+    decl->headers = commands;
+    return decl;
+}
+
 void VarAssign(char* name, ItemList* value){
     _logSyntacticAnalyzerAction(__FUNCTION__);
     // overwrite if exists
