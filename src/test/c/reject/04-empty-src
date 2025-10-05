@@ -1,5 +1,5 @@
 project p
-src { }
+sources { }
 build
 
 

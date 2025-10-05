@@ -1,6 +1,6 @@
 project p
-libs { m pthread }
-src { main.c }
+libraries { m pthread }
+sources { main.c }
 build
 
 

@@ -45,9 +45,9 @@ text_atom           [^[:space:]{},]+
 "project"           { return SimpleLexemeAction(PROJECT); }
 "compiler"          { return SimpleLexemeAction(COMPILER); }
 "flags"             { return SimpleLexemeAction(FLAGS); }
-"src"               { return SimpleLexemeAction(SRC); }
+"sources"           { return SimpleLexemeAction(SRC); }
 "headers"           { return SimpleLexemeAction(HEADERS); }
-"libs"              { return SimpleLexemeAction(LIBS); }
+"libraries"         { return SimpleLexemeAction(LIBS); }
 "output"            { return SimpleLexemeAction(OUTPUT); }
 "build"             { return SimpleLexemeAction(BUILD); }
 "run"               { return SimpleLexemeAction(RUN); }

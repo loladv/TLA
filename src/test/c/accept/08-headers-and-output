@@ -2,7 +2,7 @@ project p
 compiler gcc
 flags { -O2 }
 headers { include/ }
-src { main.c }
+sources { main.c }
 output myapp
 build
 

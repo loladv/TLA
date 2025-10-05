@@ -3,8 +3,8 @@ var FILES = main.c util.c
 project utils
 compiler clang
 flags { use OPTS -lm }
-src { use FILES }
-libs { m }
+sources { use FILES }
+libraries { m }
 build
 
 

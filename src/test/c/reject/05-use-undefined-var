@@ -1,5 +1,5 @@
 project p
-src { use NOT_DEFINED }
+sources { use NOT_DEFINED }
 build
 
 

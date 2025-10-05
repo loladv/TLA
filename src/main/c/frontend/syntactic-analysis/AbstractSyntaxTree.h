@@ -99,9 +99,9 @@ typedef struct Program Program;
 // Tipos de declaraciones
 enum DeclType {
     PROJECT_DECL,    // project helloWorld
-    SRC_DECL,        // src { main.c }
+    SRC_DECL,        // sources { main.c }
     COMPILER_DECL,   // compiler clang
-    LIBS_DECL,       // libs { m pthread }
+    LIBS_DECL,       // libraries { m pthread }
     HEADERS_DECL,    // headers { include/ }
     OUTPUT_DECL,     // output myapp
     PRE_BUILD_DECL,  // pre_build { cmds }
@@ -124,13 +124,13 @@ struct Decl {
             char * projectName;        // PROJECT: "helloWorld"
         };
         struct {
-            ItemList * srcFiles;      // SRC: { main.c }
+            ItemList * srcFiles;      // SOURCES: { main.c }
         };
         struct {
             char * compilerName;      // COMPILER: clang/gcc
         };
         struct {
-            ItemList * libs;          // LIBS: { m pthread }
+            ItemList * libs;          // LIBRARIES: { m pthread }
         };
         struct {
             ItemList * headers;       // HEADERS: { include/ }

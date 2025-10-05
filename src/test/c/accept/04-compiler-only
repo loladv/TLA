@@ -1,6 +1,6 @@
 project p
 compiler gcc
-src { main.c }
+sources { main.c }
 build
 
 

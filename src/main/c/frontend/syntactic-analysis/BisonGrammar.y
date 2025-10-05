@@ -98,7 +98,7 @@ void yyerror(const YYLTYPE * location, const char * message) {}
 %type  <decl>    project_decl section_decl var_decl
 %type  <text>    compiler_decl output_decl
 %type  <decls>   section_list_opt
-%type  <items>   src_decl flags_decl libs_decl headers_decl pre_build_decl post_build_decl arg_list_opt arg_list use_items
+%type  <items>   sources_decl flags_decl libraries_decl headers_decl pre_build_decl post_build_decl arg_list_opt arg_list use_items
 
 //Lo dejo comentado para ver como se usa si lo necesitaramos
 /**
@@ -157,8 +157,8 @@ section_list_opt
   ;
 
 section_decl
-  : src_decl                                     { $$ = MakeSrcDecl($1); }
-  | libs_decl                                    { $$ = MakeLibsDecl($1); }
+  : sources_decl                                 { $$ = MakeSrcDecl($1); }
+  | libraries_decl                               { $$ = MakeLibsDecl($1); }
   | compiler_decl                                { $$ = MakeCompilerDecl($1); }
   | headers_decl                                 { $$ = MakeHeadersDecl($1); }
   | output_decl                                  { $$ = MakeOutputDecl($1); }
@@ -169,7 +169,7 @@ section_decl
   | run_decl                                     { $$ = MakeRunDecl(); }
   ;
 
-src_decl
+sources_decl
   : SRC OPEN_BRACE arg_list_opt CLOSE_BRACE     { $$ = $3; }
   ;
 
@@ -177,7 +177,7 @@ flags_decl
   : FLAGS OPEN_BRACE arg_list_opt CLOSE_BRACE   { $$ = $3; }
   ;
 
-libs_decl
+libraries_decl
   : LIBS OPEN_BRACE arg_list_opt CLOSE_BRACE    { $$ = $3; }
   ;
 headers_decl

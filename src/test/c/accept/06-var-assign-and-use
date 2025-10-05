@@ -1,6 +1,6 @@
 var X = a b c
 project p
-src { use X }
+sources { use X }
 build
 
 

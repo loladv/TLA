@@ -1,5 +1,5 @@
 project helloWorld
-src { main.c }
+sources { main.c }
 flags { -O2, -Wall, DEBUG }
 build
 

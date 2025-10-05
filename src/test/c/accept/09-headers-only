@@ -1,6 +1,6 @@
 project p
 headers { include/ include2/ }
-src { main.c }
+sources { main.c }
 build
 
 

@@ -1,6 +1,6 @@
 project p
 output myapp
-src { main.c }
+sources { main.c }
 build
 
 

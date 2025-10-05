@@ -1,7 +1,7 @@
 project build_automation
 compiler clang
 flags { -Wall }
-src { main.c }
+sources { main.c }
 pre_build {
 rm -rf build/
 mkdir build
