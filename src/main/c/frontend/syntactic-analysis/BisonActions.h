@@ -46,6 +46,8 @@ Decl*     MakePreBuildDecl(ItemList* commands);
 Decl*     MakePostBuildDecl(ItemList* commands);
 Decl*     MakeBuildDecl(void);
 Decl*     MakeRunDecl(void);
+Decl*     MakeLogDecl(char* path, int mode);
+int       MakeLogMode(int mode);
 
 /* args de src/flags/libs and var expansion */
 ItemList* MakeArgListEmpty(void);

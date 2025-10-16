@@ -70,6 +70,11 @@ void yyerror(const YYLTYPE * location, const char * message) {}
 %token <token> CLEAN
 %token <token> TEST
 %token <token> TARGET
+%token <token> LOG
+%token <token> PATH
+%token <token> MODE
+%token <token> APPEND
+%token <token> OVERWRITE
 
 %token <token> OPEN_BRACE
 %token <token> CLOSE_BRACE
@@ -78,6 +83,7 @@ void yyerror(const YYLTYPE * location, const char * message) {}
 %token <token> COMMA
 %token <token> ARROW
 %token <token> ASSIGN
+%token <token> SEMICOLON
 
 %token <text> IDENT
 %token <text> TEXT
@@ -99,6 +105,8 @@ void yyerror(const YYLTYPE * location, const char * message) {}
 %type  <text>    compiler_decl output_decl
 %type  <decls>   section_list_opt
 %type  <items>   sources_decl flags_decl libraries_decl headers_decl pre_build_decl post_build_decl arg_list_opt arg_list use_items
+%type  <decl>    log_decl
+%type  <integer> log_mode
 
 //Lo dejo comentado para ver como se usa si lo necesitaramos
 /**
@@ -167,6 +175,7 @@ section_decl
   | post_build_decl                              { $$ = MakePostBuildDecl($1); }
   | build_decl                                   { $$ = MakeBuildDecl(); }
   | run_decl                                     { $$ = MakeRunDecl(); }
+  | log_decl                                     { $$ = $1; }
   ;
 
 sources_decl
@@ -229,6 +238,15 @@ use_items
 
 var_decl
   : VAR IDENT ASSIGN arg_list_opt                { VarAssign($2, $4); $$ = NULL; }
+  ;
+
+log_decl
+  : LOG OPEN_BRACE PATH TEXT SEMICOLON MODE log_mode CLOSE_BRACE     { $$ = MakeLogDecl($4, $7); }
+  ;
+
+log_mode
+  : APPEND                                      { $$ = MakeLogMode(APPEND_MODE); }
+  | OVERWRITE                                   { $$ = MakeLogMode(OVERWRITE_MODE); }
   ;
 
 %%

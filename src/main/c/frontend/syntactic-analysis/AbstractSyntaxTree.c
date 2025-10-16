@@ -83,8 +83,12 @@ void destroyItem(Item * item) {
 void destroyItemList(ItemList * itemList) {
     logDebugging(_logger, "Executing destructor: %s", __FUNCTION__);
     if (itemList != NULL) {
-        destroyItem(itemList->item);
-        destroyItemList(itemList->next);
+        if (itemList->item != NULL) {
+            destroyItem(itemList->item);
+        }
+        if (itemList->next != NULL) {
+            destroyItemList(itemList->next);
+        }
         free(itemList);
     }
 }
@@ -129,6 +133,12 @@ void destroyDecl(Decl * decl) {
             case RUN_DECL:
                 // No hay datos adicionales que liberar
                 break;
+            case LOG_DECL:
+                if (decl->logPath != NULL) {
+                    free(decl->logPath);
+                }
+                // logMode is an enum, no need to free
+                break;
         }
         free(decl);
     }
@@ -137,8 +147,12 @@ void destroyDecl(Decl * decl) {
 void destroyDeclList(DeclList * declList) {
     logDebugging(_logger, "Executing destructor: %s", __FUNCTION__);
     if (declList != NULL) {
-        destroyDecl(declList->decl);
-        destroyDeclList(declList->next);
+        if (declList->decl != NULL) {
+            destroyDecl(declList->decl);
+        }
+        if (declList->next != NULL) {
+            destroyDeclList(declList->next);
+        }
         free(declList);
     }
 }
@@ -146,8 +160,12 @@ void destroyDeclList(DeclList * declList) {
 void destroyProgram(Program * program) {
     logDebugging(_logger, "Executing destructor: %s", __FUNCTION__);
     if (program != NULL) {
-        destroyDecl(program->projectDecl);
-        destroyDeclList(program->sections);
+        if (program->projectDecl != NULL) {
+            destroyDecl(program->projectDecl);
+        }
+        if (program->sections != NULL) {
+            destroyDeclList(program->sections);
+        }
         free(program);
     }
 }

@@ -1,0 +1,5 @@
+project testLogLongPath
+sources { main.c }
+log { path logs/compilation/build_output.log; mode append }
+build
+run

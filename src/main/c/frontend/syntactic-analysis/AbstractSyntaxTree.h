@@ -89,6 +89,7 @@ void destroyProgram(Program * program);
 // Declaraciones forward para tipos recursivos
 typedef enum DeclType DeclType;
 typedef enum ItemType ItemType;
+typedef enum LogMode LogMode;
 
 typedef struct Decl Decl;
 typedef struct DeclList DeclList;
@@ -108,12 +109,19 @@ enum DeclType {
     POST_BUILD_DECL, // post_build { cmds }
     FLAGS_DECL,      // flags { -O2, -Wall }
     BUILD_DECL,      // build
-    RUN_DECL         // run
+    RUN_DECL,        // run
+    LOG_DECL         // log { path "file.log"; mode append }
 };
 
 // Tipos de items 
 enum ItemType {
     TEXT_ITEM        // Para archivos como "main.c"
+};
+
+// Tipos de modo de log
+enum LogMode {
+    APPEND_MODE,     // append
+    OVERWRITE_MODE   // overwrite
 };
 
 // Estructura para declaraciones individuales
@@ -140,6 +148,10 @@ struct Decl {
         };
         struct {
             ItemList * flags;         // FLAGS: { -O2, -Wall }
+        };
+        struct {
+            char * logPath;          // LOG: path
+            LogMode logMode;         // LOG: mode (append/overwrite)
         };
         // BUILD y RUN no necesitan datos adicionales
     };

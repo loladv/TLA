@@ -1,0 +1,5 @@
+project testLogOverwrite
+sources { main.c }
+log { path debug.log; mode overwrite }
+build
+run

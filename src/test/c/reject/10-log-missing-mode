@@ -1,0 +1,4 @@
+project testLogMissingMode
+sources { main.c }
+log { path build.log }
+build

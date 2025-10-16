@@ -36,8 +36,8 @@ extern CompilationStatus TextualLexemeAction(TokenLabel label);  /* IDENT, TEXT 
 /* Patrones reusables */
 whitespace          [[:space:]]+
 
-/* Un átomo de texto sin espacios ni llaves/comas (flags, paths, args, libs, etc.) */
-text_atom           [^[:space:]{},]+
+/* Un átomo de texto sin espacios ni llaves/comas/comillas/punto y coma (flags, paths, args, libs, etc.) */
+text_atom           [^[:space:]{},";]+
 
 /* Palabras clave (MakeLite-C) */
 %%
@@ -58,6 +58,11 @@ text_atom           [^[:space:]{},]+
 "clean"             { return SimpleLexemeAction(CLEAN); }
 "test"              { return SimpleLexemeAction(TEST); }
 "target"            { return SimpleLexemeAction(TARGET); }
+"log"               { return SimpleLexemeAction(LOG); }
+"path"              { return SimpleLexemeAction(PATH); }
+"mode"              { return SimpleLexemeAction(MODE); }
+"append"            { return SimpleLexemeAction(APPEND); }
+"overwrite"         { return SimpleLexemeAction(OVERWRITE); }
 
 <COMMANDS>"{"       { return SimpleLexemeAction(OPEN_BRACE); }
 <COMMANDS>"}"       { BEGIN(INITIAL); return SimpleLexemeAction(CLOSE_BRACE); }
@@ -66,6 +71,7 @@ text_atom           [^[:space:]{},]+
 ","                 { return SimpleLexemeAction(COMMA); }
 "=>"                { return SimpleLexemeAction(ARROW); }
 "="                 { return SimpleLexemeAction(ASSIGN); }
+";"                 { return SimpleLexemeAction(SEMICOLON); }
 
 [[:alpha:]_][[:alnum:]_]*   { return TextualLexemeAction(IDENT); }
 

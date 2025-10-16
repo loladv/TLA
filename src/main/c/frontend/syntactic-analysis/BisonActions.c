@@ -293,6 +293,20 @@ Decl* MakePostBuildDecl(ItemList* commands){
     return decl;
 }
 
+Decl* MakeLogDecl(char* path, int mode){
+    _logSyntacticAnalyzerAction(__FUNCTION__);
+    Decl * decl = calloc(1, sizeof(Decl));
+    decl->type = LOG_DECL;
+    decl->logPath = path;
+    decl->logMode = (LogMode)mode;
+    return decl;
+}
+
+int MakeLogMode(int mode){
+    _logSyntacticAnalyzerAction(__FUNCTION__);
+    return mode;
+}
+
 void VarAssign(char* name, ItemList* value){
     _logSyntacticAnalyzerAction(__FUNCTION__);
     // overwrite if exists
