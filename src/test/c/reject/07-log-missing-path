@@ -1,4 +1,4 @@
 project testLogMissingPath
 sources { main.c }
-log { mode append }
+log { append }
 build

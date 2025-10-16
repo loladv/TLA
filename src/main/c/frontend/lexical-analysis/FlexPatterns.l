@@ -59,8 +59,6 @@ text_atom           [^[:space:]{},";]+
 "test"              { return SimpleLexemeAction(TEST); }
 "target"            { return SimpleLexemeAction(TARGET); }
 "log"               { return SimpleLexemeAction(LOG); }
-"path"              { return SimpleLexemeAction(PATH); }
-"mode"              { return SimpleLexemeAction(MODE); }
 "append"            { return SimpleLexemeAction(APPEND); }
 "overwrite"         { return SimpleLexemeAction(OVERWRITE); }
 
@@ -71,7 +69,6 @@ text_atom           [^[:space:]{},";]+
 ","                 { return SimpleLexemeAction(COMMA); }
 "=>"                { return SimpleLexemeAction(ARROW); }
 "="                 { return SimpleLexemeAction(ASSIGN); }
-";"                 { return SimpleLexemeAction(SEMICOLON); }
 
 [[:alpha:]_][[:alnum:]_]*   { return TextualLexemeAction(IDENT); }
 

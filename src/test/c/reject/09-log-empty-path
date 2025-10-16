@@ -1,4 +1,0 @@
-project testLogEmptyPath
-sources { main.c }
-log { path ; mode append }
-build

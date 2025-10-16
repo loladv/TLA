@@ -1,4 +1,4 @@
 project testLogMalformedSyntax
 sources { main.c }
-log { path build.log mode append }
+log { build.log, append }
 build

@@ -1,4 +1,4 @@
 project testLogReject
 sources { main.c }
-log { path build.log; mode invalid }
+log { build.log invalid }
 build

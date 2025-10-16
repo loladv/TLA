@@ -1,4 +1,4 @@
 project testLogMissingMode
 sources { main.c }
-log { path build.log }
+log { build.log }
 build

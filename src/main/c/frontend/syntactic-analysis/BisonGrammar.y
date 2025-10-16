@@ -71,8 +71,6 @@ void yyerror(const YYLTYPE * location, const char * message) {}
 %token <token> TEST
 %token <token> TARGET
 %token <token> LOG
-%token <token> PATH
-%token <token> MODE
 %token <token> APPEND
 %token <token> OVERWRITE
 
@@ -83,7 +81,6 @@ void yyerror(const YYLTYPE * location, const char * message) {}
 %token <token> COMMA
 %token <token> ARROW
 %token <token> ASSIGN
-%token <token> SEMICOLON
 
 %token <text> IDENT
 %token <text> TEXT
@@ -241,7 +238,7 @@ var_decl
   ;
 
 log_decl
-  : LOG OPEN_BRACE PATH TEXT SEMICOLON MODE log_mode CLOSE_BRACE     { $$ = MakeLogDecl($4, $7); }
+  : LOG OPEN_BRACE TEXT log_mode CLOSE_BRACE     { $$ = MakeLogDecl($3, $4); }
   ;
 
 log_mode
