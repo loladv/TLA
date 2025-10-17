@@ -1,4 +1,0 @@
-project testGlobInvalidPattern
-sources { *.c; *.c }
-headers { *.h }
-build

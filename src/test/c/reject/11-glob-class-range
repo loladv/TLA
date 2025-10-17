@@ -1,0 +1,6 @@
+project globClassRange
+sources { *.c[123] }
+headers { *.h }
+build
+
+

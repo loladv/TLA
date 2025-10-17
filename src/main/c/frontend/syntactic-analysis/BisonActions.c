@@ -44,6 +44,7 @@ bool HasSemanticError(void) {
 /* PRIVATE FUNCTIONS */
 
 static void _logSyntacticAnalyzerAction(const char * functionName);
+static bool _contains(const char * s, const char * needle);
 
 /**
  * Logs a syntactic-analyzer action in DEBUGGING level.
@@ -57,6 +58,23 @@ static char * _dup(const char * s) {
     char * c = calloc(n + 1, 1);
     memcpy(c, s, n);
     return c;
+}
+
+static bool _contains(const char * s, const char * needle) {
+    return (s != NULL && needle != NULL && strstr(s, needle) != NULL);
+}
+
+bool IsUnsupportedGlob(const char * text) {
+    if (text == NULL) return false;
+    /* Rechazar recursivo ** */
+    if (_contains(text, "**")) return true;
+    /* Rechazar negación ! */
+    if (strchr(text, '!') != NULL) return true;
+    /* Rechazar clases de caracteres [ ... ] */
+    const char * lb = strchr(text, '[');
+    const char * rb = strchr(text, ']');
+    if (lb != NULL && rb != NULL && lb < rb) return true;
+    return false;
 }
 
 static void _freeVarTable(void) {
@@ -215,6 +233,10 @@ ItemList* MakeArgListEmpty(void){
 
 ItemList* MakeArgList(char* first){
 	_logSyntacticAnalyzerAction(__FUNCTION__);
+    if (IsUnsupportedGlob(first)) {
+        logError(_logger, "Unsupported glob pattern: %s", first);
+        _semanticError = true;
+    }
 	ItemList * itemList = calloc(1, sizeof(ItemList));
 	itemList->item = calloc(1, sizeof(Item));
 	itemList->item->text = first;
@@ -224,6 +246,10 @@ ItemList* MakeArgList(char* first){
 
 ItemList* AddArgToList(ItemList* xs, char* t){
     _logSyntacticAnalyzerAction(__FUNCTION__);
+    if (IsUnsupportedGlob(t)) {
+        logError(_logger, "Unsupported glob pattern: %s", t);
+        _semanticError = true;
+    }
     ItemList * node = calloc(1, sizeof(ItemList));
     node->item = calloc(1, sizeof(Item));
     node->item->text = t;

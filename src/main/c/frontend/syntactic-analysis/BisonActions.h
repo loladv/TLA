@@ -12,6 +12,8 @@
 /** Initialize module's internal state. */
 ModuleDestructor initializeBisonActionsModule(CompilerState * compilerState);
 bool HasSemanticError(void);
+/* Glob validation */
+bool IsUnsupportedGlob(const char * text);
 
 /**
  * Bison semantic actions.

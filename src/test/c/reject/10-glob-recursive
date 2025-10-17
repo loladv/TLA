@@ -1,0 +1,6 @@
+project globRecursive
+sources { **/*.c }
+headers { *.h }
+build
+
+

@@ -1,0 +1,6 @@
+project globNegation
+sources { !*.c }
+headers { *.h }
+build
+
+

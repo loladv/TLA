@@ -1,0 +1,7 @@
+project globCombined
+sources { main.c src/*.c test?.c *.c }
+headers { common.h include/*.h *.h }
+build
+run
+
+

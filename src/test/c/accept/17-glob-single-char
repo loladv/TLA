@@ -1,0 +1,7 @@
+project globSingleChar
+sources { test?.c }
+headers { util?.h }
+build
+run
+
+
