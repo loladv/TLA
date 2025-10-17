@@ -1,0 +1,5 @@
+project testGlobBasic
+sources { *.c }
+headers { *.h }
+build
+run

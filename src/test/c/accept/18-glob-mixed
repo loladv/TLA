@@ -1,0 +1,6 @@
+project testGlobMixed
+sources { main.c *.c src/*.c }
+headers { common.h *.h include/*.h }
+log { build.log append }
+build
+run

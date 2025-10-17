@@ -72,6 +72,8 @@ text_atom           [^[:space:]{},";]+
 
 [[:alpha:]_][[:alnum:]_]*   { return TextualLexemeAction(IDENT); }
 
+{text_atom}                 { return TextualLexemeAction(TEXT); }
+
 "//[^\n]*"                         { return IgnoredLexemeAction(); }
 <COMMANDS>\n                        { return IgnoredLexemeAction(); }
 <COMMANDS>{whitespace}           { return IgnoredLexemeAction(); }

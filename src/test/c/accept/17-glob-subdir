@@ -1,0 +1,5 @@
+project testGlobSubdir
+sources { src/*.c }
+headers { include/*.h }
+build
+run
