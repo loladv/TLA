@@ -302,20 +302,93 @@ Decl* MakeOutputDecl(char* outputName){
     return decl;
 }
 
-Decl* MakePreBuildDecl(ItemList* commands){
+Command* MakeCommand(CommandType type, ItemList* args) {
+    _logSyntacticAnalyzerAction(__FUNCTION__);
+
+   
+    int argCount = 0;
+    for (ItemList* it = args; it != NULL; it = it->next) {
+        argCount++;
+    }
+
+    bool error = false;
+    switch (type) {
+        case MKDIR_CMD:
+        case RM_CMD:
+            if (argCount == 0) {
+                logError(_logger, "Command '%s' requires at least one argument.", (type == MKDIR_CMD ? "mkdir" : "rm"));
+                error = true;
+            }
+            break;
+        case CP_CMD:
+        case MV_CMD:
+            if (argCount < 2) {
+                logError(_logger, "Command '%s' requires at least two arguments.", (type == CP_CMD ? "cp" : "mv"));
+                error = true;
+            }
+            break;
+    }
+
+    if (error) {
+        _semanticError = true;
+        destroyItemList(args); 
+        return NULL;         
+    }
+    
+
+    Command *cmd = calloc(1, sizeof(Command));
+    cmd->type = type;
+    cmd->args = args; 
+    return cmd;
+}
+
+
+CommandList* MakeCommandList(Command* firstCommand, CommandList* next) {
+    
+     if (firstCommand == NULL) return next; 
+     _logSyntacticAnalyzerAction(__FUNCTION__);
+     CommandList *list = calloc(1, sizeof(CommandList));
+     list->command = firstCommand;
+     list->next = next;
+     return list;
+}
+
+CommandList* AddCommandToList(CommandList* list, Command* newCommand) {
+
+    if (newCommand == NULL) return list; 
+    _logSyntacticAnalyzerAction(__FUNCTION__);
+    CommandList *newNode = calloc(1, sizeof(CommandList));
+    newNode->command = newCommand;
+    newNode->next = NULL;
+
+    if (list == NULL) {
+        return newNode;
+    } else {
+        CommandList *current = list;
+        while (current->next != NULL) {
+            current = current->next;
+        }
+        current->next = newNode;
+        return list;
+    }
+}
+
+Decl* MakePreBuildDecl(CommandList* commands){ 
     _logSyntacticAnalyzerAction(__FUNCTION__);
     Decl * decl = calloc(1, sizeof(Decl));
     decl->type = PRE_BUILD_DECL;
-    // reuse ItemList for commands (each item->text is a token/word)
-    decl->headers = commands; // temporary reuse field not ideal; but AST has separate union members
+    // Assign to the correct union member defined in AbstractSyntaxTree.h
+    decl->preBuildCommands.commands = commands;
     return decl;
 }
 
-Decl* MakePostBuildDecl(ItemList* commands){
+
+Decl* MakePostBuildDecl(CommandList* commands){ 
     _logSyntacticAnalyzerAction(__FUNCTION__);
     Decl * decl = calloc(1, sizeof(Decl));
     decl->type = POST_BUILD_DECL;
-    decl->headers = commands;
+    // Assign to the correct union member defined in AbstractSyntaxTree.h
+    decl->postBuildCommands.commands = commands;
     return decl;
 }
 

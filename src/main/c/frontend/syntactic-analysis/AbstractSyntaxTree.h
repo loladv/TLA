@@ -90,12 +90,16 @@ void destroyProgram(Program * program);
 typedef enum DeclType DeclType;
 typedef enum ItemType ItemType;
 typedef enum LogMode LogMode;
+typedef enum CommandType CommandType;
+
 
 typedef struct Decl Decl;
 typedef struct DeclList DeclList;
 typedef struct Item Item;
 typedef struct ItemList ItemList;
 typedef struct Program Program;
+typedef struct Command Command;
+typedef struct CommandList CommandList;
 
 // Tipos de declaraciones
 enum DeclType {
@@ -122,6 +126,13 @@ enum ItemType {
 enum LogMode {
     APPEND_MODE,     // append
     OVERWRITE_MODE   // overwrite
+};
+
+enum CommandType {
+    MKDIR_CMD,
+    RM_CMD,
+    CP_CMD,
+    MV_CMD
 };
 
 // Estructura para declaraciones individuales
@@ -153,6 +164,13 @@ struct Decl {
             char * logPath;          // LOG: path
             LogMode logMode;         // LOG: mode (append/overwrite)
         };
+        struct {
+            CommandList *commands;  // PRE_BUILD: { mkdir build }
+        } preBuildCommands;        
+
+        struct {
+            CommandList *commands;  // POST_BUILD: { cp a.out bin/ }
+        } postBuildCommands;       
         // BUILD y RUN no necesitan datos adicionales
     };
 };
@@ -181,11 +199,24 @@ struct Program {
     DeclList * sections;   // Lista de secciones (src, build, run)
 };
 
+// Estructura para un comando individual
+struct Command {
+    CommandType type;
+    ItemList *args; 
+};
+
+// Lista de comandos
+struct CommandList {
+    Command *command;
+    CommandList *next;
+};
 
 void destroyDecl(Decl * decl);
 void destroyDeclList(DeclList * declList);
 void destroyItem(Item * item);
 void destroyItemList(ItemList * itemList);
 void destroyProgram(Program * program);
+void destroyCommand(Command *command);
+void destroyCommandList(CommandList *commandList);
 
 #endif

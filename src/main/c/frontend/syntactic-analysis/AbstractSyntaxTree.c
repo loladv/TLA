@@ -93,6 +93,27 @@ void destroyItemList(ItemList * itemList) {
     }
 }
 
+void destroyCommand(Command *command) {
+    logDebugging(_logger, "Executing destructor: %s", __FUNCTION__);
+    if (command != NULL) {
+        destroyItemList(command->args); 
+        free(command);
+    }
+}
+
+void destroyCommandList(CommandList *commandList) {
+    logDebugging(_logger, "Executing destructor: %s", __FUNCTION__);
+    if (commandList != NULL) {
+        if (commandList->command != NULL) {
+            destroyCommand(commandList->command);
+        }
+        if (commandList->next != NULL) {
+            destroyCommandList(commandList->next);
+        }
+        free(commandList);
+    }
+}
+
 void destroyDecl(Decl * decl) {
     logDebugging(_logger, "Executing destructor: %s", __FUNCTION__);
     if (decl != NULL) {
@@ -125,9 +146,10 @@ void destroyDecl(Decl * decl) {
                 destroyItemList(decl->flags);
                 break;
             case PRE_BUILD_DECL:
+                destroyCommandList(decl->preBuildCommands.commands); 
+                break;
             case POST_BUILD_DECL:
-                // Commands stored as ItemList (reusing list structure)
-                destroyItemList(decl->headers);
+                destroyCommandList(decl->postBuildCommands.commands); 
                 break;
             case BUILD_DECL:
             case RUN_DECL:

@@ -36,6 +36,9 @@ void yyerror(const YYLTYPE * location, const char * message) {}
 	Item* item;
 	ItemList* items;
 	Program * program;
+
+  Command* command;
+  CommandList* commandList;
 }
 
 /**
@@ -47,9 +50,12 @@ void yyerror(const YYLTYPE * location, const char * message) {}
  * @see https://www.gnu.org/software/bison/manual/html_node/Destructor-Decl.html
  */
 
+%destructor { destroyCommand($$); } <command>
+%destructor { destroyCommandList($$); } <commandList> 
 %destructor { destroyDecl($$); } <decl>
 %destructor { destroyDeclList($$); } <decls>
 %destructor { destroyItemList($$); } <items>
+
 
 
 /** Terminals. */
@@ -79,6 +85,7 @@ void yyerror(const YYLTYPE * location, const char * message) {}
 %token <token> OPEN_COMMENT
 %token <token> CLOSE_COMMENT
 %token <token> COMMA
+%token <token> SEMICOLON
 %token <token> ARROW
 %token <token> ASSIGN
 
@@ -87,6 +94,11 @@ void yyerror(const YYLTYPE * location, const char * message) {}
 
 %token <token> IGNORED
 %token <token> UNKNOWN
+
+%token <token> MKDIR
+%token <token> RM
+%token <token> CP
+%token <token> MV
 
 /** Non-terminals. */
 /*
@@ -97,11 +109,13 @@ void yyerror(const YYLTYPE * location, const char * message) {}
 */
 
 //TODO: Completar con lo que falta
+%type  <command> command
+%type  <commandList> command_list command_list_opt pre_build_decl post_build_decl 
 %type  <program> program
 %type  <decl>    project_decl section_decl var_decl
 %type  <text>    compiler_decl output_decl
 %type  <decls>   section_list_opt
-%type  <items>   sources_decl flags_decl libraries_decl headers_decl pre_build_decl post_build_decl arg_list_opt arg_list use_items
+%type  <items>   sources_decl flags_decl libraries_decl headers_decl arg_list_opt arg_list use_items
 %type  <decl>    log_decl
 %type  <integer> log_mode
 
@@ -196,11 +210,11 @@ output_decl
   ;
 
 pre_build_decl
-  : PRE_BUILD OPEN_BRACE arg_list_opt CLOSE_BRACE { $$ = $3; }
+  : PRE_BUILD OPEN_BRACE command_list_opt CLOSE_BRACE { $$ = $3; } 
   ;
 
 post_build_decl
-  : POST_BUILD OPEN_BRACE arg_list_opt CLOSE_BRACE { $$ = $3; }
+  : POST_BUILD OPEN_BRACE command_list_opt CLOSE_BRACE { $$ = $3; } 
   ;
 
 compiler_decl
@@ -211,6 +225,23 @@ compiler_decl
 build_decl : BUILD ;
 
 run_decl   : RUN   ;
+
+command_list_opt
+  : %empty                  { $$ = NULL; } 
+  | command_list            { $$ = $1; }
+  ;
+
+  command_list
+  : command                 { $$ = MakeCommandList($1, NULL); } 
+  | command_list command    { $$ = AddCommandToList($1, $2); }  
+  ;
+
+command
+  : MKDIR arg_list { $$ = MakeCommand(MKDIR_CMD, $2); } 
+  | RM arg_list    { $$ = MakeCommand(RM_CMD, $2);    } 
+  | CP arg_list    { $$ = MakeCommand(CP_CMD, $2);    } 
+  | MV arg_list    { $$ = MakeCommand(MV_CMD, $2);    } 
+  ;
 
 arg_list_opt
   : arg_list                                     { $$ = $1; }

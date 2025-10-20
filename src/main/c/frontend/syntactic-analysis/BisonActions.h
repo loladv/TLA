@@ -36,6 +36,10 @@ Program*  MakeProgram(Decl* projectDecl, DeclList* sections);
 Decl*     MakeProjectDecl(char* name);
 DeclList* MakeDeclListEmpty(void);
 DeclList* AddSectionToList(DeclList* xs, Decl* d);
+Command* MakeCommand(CommandType type, ItemList* args); // Generic command builder
+
+CommandList* MakeCommandList(Command* firstCommand, CommandList* next); 
+CommandList* AddCommandToList(CommandList* list, Command* newCommand); 
 
 /* src / flags / libs / compiler / build / run */
 Decl*     MakeSrcDecl(ItemList* items);
@@ -44,8 +48,8 @@ Decl*     MakeLibsDecl(ItemList* libs);
 Decl*     MakeCompilerDecl(char* compiler);
 Decl*     MakeHeadersDecl(ItemList* headers);
 Decl*     MakeOutputDecl(char* outputName);
-Decl*     MakePreBuildDecl(ItemList* commands);
-Decl*     MakePostBuildDecl(ItemList* commands);
+Decl*     MakePreBuildDecl(CommandList* commands);
+Decl*     MakePostBuildDecl(CommandList* commands);
 Decl*     MakeBuildDecl(void);
 Decl*     MakeRunDecl(void);
 Decl*     MakeLogDecl(char* path, int mode);

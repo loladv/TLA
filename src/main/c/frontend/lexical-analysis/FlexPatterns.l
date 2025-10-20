@@ -62,11 +62,16 @@ text_atom           [^[:space:]{},";]+
 "append"            { return SimpleLexemeAction(APPEND); }
 "overwrite"         { return SimpleLexemeAction(OVERWRITE); }
 
+<COMMANDS>"mkdir"   { return SimpleLexemeAction(MKDIR); }
+<COMMANDS>"rm"      { return SimpleLexemeAction(RM); }
+<COMMANDS>"cp"      { return SimpleLexemeAction(CP); }
+<COMMANDS>"mv"      { return SimpleLexemeAction(MV); }
 <COMMANDS>"{"       { return SimpleLexemeAction(OPEN_BRACE); }
 <COMMANDS>"}"       { BEGIN(INITIAL); return SimpleLexemeAction(CLOSE_BRACE); }
 "{"                 { return SimpleLexemeAction(OPEN_BRACE); }
 "}"                 { return SimpleLexemeAction(CLOSE_BRACE); }
 ","                 { return SimpleLexemeAction(COMMA); }
+";"                 { return SimpleLexemeAction(SEMICOLON); }
 "=>"                { return SimpleLexemeAction(ARROW); }
 "="                 { return SimpleLexemeAction(ASSIGN); }
 
