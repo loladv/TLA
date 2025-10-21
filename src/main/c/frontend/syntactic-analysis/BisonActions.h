@@ -37,6 +37,7 @@ Decl*     MakeProjectDecl(char* name);
 DeclList* MakeDeclListEmpty(void);
 DeclList* AddSectionToList(DeclList* xs, Decl* d);
 Command* MakeCommand(CommandType type, ItemList* args); // Generic command builder
+Command* MakeCommandFromLine(char* commandLine); // Command from full line
 
 CommandList* MakeCommandList(Command* firstCommand, CommandList* next); 
 CommandList* AddCommandToList(CommandList* list, Command* newCommand); 

@@ -96,7 +96,9 @@ void destroyItemList(ItemList * itemList) {
 void destroyCommand(Command *command) {
     logDebugging(_logger, "Executing destructor: %s", __FUNCTION__);
     if (command != NULL) {
-        destroyItemList(command->args); 
+        if (command->commandLine != NULL) {
+            free(command->commandLine);
+        }
         free(command);
     }
 }

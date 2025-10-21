@@ -1,0 +1,6 @@
+project testInvalidCommandUnknown
+sources { main.c }
+pre_build {
+ls -la
+}
+build

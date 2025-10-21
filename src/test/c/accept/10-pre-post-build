@@ -8,7 +8,6 @@ mkdir build
 }
 post_build {
 cp output_bin /usr/local/bin/
-echo Build_completado > log.txt
 }
 
 build

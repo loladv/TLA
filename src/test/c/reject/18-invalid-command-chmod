@@ -1,0 +1,6 @@
+project testInvalidCommandChmod
+sources { main.c }
+pre_build {
+chmod +x script.sh
+}
+build

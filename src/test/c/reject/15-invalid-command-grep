@@ -1,0 +1,6 @@
+project testInvalidCommandGrep
+sources { main.c }
+pre_build {
+grep "pattern" file.txt
+}
+build

@@ -162,8 +162,8 @@ program
   ;
 
 var_decl_list_opt
-  : /* empty */
-  | var_decl_list_opt var_decl
+  : %empty
+  | var_decl_list_opt var_decl                   { /* Process var_decl but don't return it */ }
   ;
 
 project_decl
@@ -171,7 +171,7 @@ project_decl
   ;
 
 section_list_opt
-  : /* empty */									{ $$ = MakeDeclListEmpty(); }
+  : %empty									{ $$ = MakeDeclListEmpty(); }
   | section_list_opt section_decl               { $$ = AddSectionToList($1, $2); }
   ;
 
@@ -237,15 +237,12 @@ command_list_opt
   ;
 
 command
-  : MKDIR arg_list { $$ = MakeCommand(MKDIR_CMD, $2); } 
-  | RM arg_list    { $$ = MakeCommand(RM_CMD, $2);    } 
-  | CP arg_list    { $$ = MakeCommand(CP_CMD, $2);    } 
-  | MV arg_list    { $$ = MakeCommand(MV_CMD, $2);    } 
+  : TEXT { $$ = MakeCommandFromLine($1); }
   ;
 
 arg_list_opt
   : arg_list                                     { $$ = $1; }
-  | /* empty */                                  { $$ = MakeArgListEmpty(); }
+  | %empty                                       { $$ = MakeArgListEmpty(); }
   ;
 
 arg_list

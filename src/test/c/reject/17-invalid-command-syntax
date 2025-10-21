@@ -1,0 +1,7 @@
+project testInvalidCommandSyntax
+sources { main.c }
+post_build {
+mkdir
+cp
+}
+build

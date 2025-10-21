@@ -1,0 +1,6 @@
+project testInvalidCommandCat
+sources { main.c }
+post_build {
+cat file.txt
+}
+build

@@ -305,40 +305,94 @@ Decl* MakeOutputDecl(char* outputName){
 Command* MakeCommand(CommandType type, ItemList* args) {
     _logSyntacticAnalyzerAction(__FUNCTION__);
 
-   
-    int argCount = 0;
-    for (ItemList* it = args; it != NULL; it = it->next) {
-        argCount++;
+    // Extraer el texto completo del primer (y único) item
+    char* commandLine = NULL;
+    if (args && args->item && args->item->text) {
+        commandLine = strdup(args->item->text);
+    } else {
+        commandLine = strdup("");
     }
-
+    
+    // Liberar la lista temporal de args ya que ya extrajimos el string
+    destroyItemList(args);
+    
+    // Validaciones básicas para comandos que requieren argumentos
     bool error = false;
-    switch (type) {
-        case MKDIR_CMD:
-        case RM_CMD:
-            if (argCount == 0) {
-                logError(_logger, "Command '%s' requires at least one argument.", (type == MKDIR_CMD ? "mkdir" : "rm"));
+    if (strlen(commandLine) == 0) {
+        switch (type) {
+            case MKDIR_CMD:
+            case RM_CMD:
+            case CP_CMD:
+            case MV_CMD:
+                logError(_logger, "Command '%s' requires arguments.", 
+                    (type == MKDIR_CMD ? "mkdir" : 
+                     type == RM_CMD ? "rm" : 
+                     type == CP_CMD ? "cp" : "mv"));
                 error = true;
-            }
-            break;
-        case CP_CMD:
-        case MV_CMD:
-            if (argCount < 2) {
-                logError(_logger, "Command '%s' requires at least two arguments.", (type == CP_CMD ? "cp" : "mv"));
-                error = true;
-            }
-            break;
+                break;
+        }
     }
 
     if (error) {
         _semanticError = true;
-        destroyItemList(args); 
+        free(commandLine);
         return NULL;         
     }
     
-
     Command *cmd = calloc(1, sizeof(Command));
     cmd->type = type;
-    cmd->args = args; 
+    cmd->commandLine = commandLine; 
+    return cmd;
+}
+
+Command* MakeCommandFromLine(char* commandLine) {
+    _logSyntacticAnalyzerAction(__FUNCTION__);
+    
+    if (commandLine == NULL || strlen(commandLine) == 0) {
+        logError(_logger, "Empty command line.");
+        _semanticError = true;
+        return NULL;
+    }
+    
+    // Determinar el tipo de comando basado en el primer token
+    CommandType type;
+    if (strncmp(commandLine, "mkdir", 5) == 0) {
+        type = MKDIR_CMD;
+    } else if (strncmp(commandLine, "rm", 2) == 0) {
+        type = RM_CMD;
+    } else if (strncmp(commandLine, "cp", 2) == 0) {
+        type = CP_CMD;
+    } else if (strncmp(commandLine, "mv", 2) == 0) {
+        type = MV_CMD;
+    } else {
+        logError(_logger, "Unknown command: %s", commandLine);
+        _semanticError = true;
+        free(commandLine);
+        return NULL;
+    }
+    
+    // Validar que el comando tenga argumentos si es necesario
+    char* firstSpace = strchr(commandLine, ' ');
+    if (firstSpace == NULL) {
+        // Comando sin argumentos
+        switch (type) {
+            case MKDIR_CMD:
+            case RM_CMD:
+            case CP_CMD:
+            case MV_CMD:
+                logError(_logger, "Command '%s' requires arguments.", 
+                    (type == MKDIR_CMD ? "mkdir" : 
+                     type == RM_CMD ? "rm" : 
+                     type == CP_CMD ? "cp" : "mv"));
+                _semanticError = true;
+                free(commandLine);
+                return NULL;
+        }
+    }
+    
+    Command *cmd = calloc(1, sizeof(Command));
+    cmd->type = type;
+    cmd->commandLine = commandLine; // Usar directamente el string del token (ya es una copia)
     return cmd;
 }
 

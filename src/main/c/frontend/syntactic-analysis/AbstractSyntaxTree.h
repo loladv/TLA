@@ -202,7 +202,7 @@ struct Program {
 // Estructura para un comando individual
 struct Command {
     CommandType type;
-    ItemList *args; 
+    char* commandLine;  // Línea completa del comando
 };
 
 // Lista de comandos

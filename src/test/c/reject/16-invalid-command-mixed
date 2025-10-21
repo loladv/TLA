@@ -1,0 +1,8 @@
+project testInvalidCommandMixed
+sources { main.c }
+pre_build {
+mkdir build
+ls -la
+rm old
+}
+build

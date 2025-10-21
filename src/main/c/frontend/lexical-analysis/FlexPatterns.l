@@ -90,8 +90,7 @@ text_atom           [^[:space:]{},";]+
 
 {whitespace}        { return IgnoredLexemeAction(); }
 
-<COMMANDS>[^\n{}[:space:]]+   { return TextualLexemeAction(TEXT); }
-{text_atom}         { return TextualLexemeAction(TEXT); }
+<COMMANDS>[^\n{}]+   { return TextualLexemeAction(TEXT); }
 
 .                   { return UnknownLexemeAction(); }
 

@@ -1,0 +1,6 @@
+project testInvalidCommandTouch
+sources { main.c }
+post_build {
+touch newfile.txt
+}
+build
