@@ -1,0 +1,17 @@
+project conditional_success
+compiler clang
+flags { -O2 }
+sources { app.c }
+
+post_build {
+cp app /usr/local/bin/
+
+}
+
+if success(post_build) {
+cp app backup/
+mv app /tmp/
+}
+
+build
+run

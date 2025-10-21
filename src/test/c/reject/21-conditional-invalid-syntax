@@ -1,0 +1,11 @@
+project invalid_syntax_test
+compiler gcc
+flags { -Wall }
+sources { main.c }
+
+if fail pre_build {
+rm -rf build
+mkdir temp
+}
+
+build

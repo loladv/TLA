@@ -1,0 +1,15 @@
+project conditional_test
+compiler gcc
+flags { -Wall -g }
+sources { main.c }
+
+pre_build {
+mkdir build
+}
+
+if fail(pre_build) {
+rm -rf build
+}
+
+build
+run

@@ -39,6 +39,7 @@ void yyerror(const YYLTYPE * location, const char * message) {}
 
   Command* command;
   CommandList* commandList;
+  Condition* condition;
 }
 
 /**
@@ -79,6 +80,11 @@ void yyerror(const YYLTYPE * location, const char * message) {}
 %token <token> LOG
 %token <token> APPEND
 %token <token> OVERWRITE
+%token <token> IF
+%token <token> FAIL
+%token <token> SUCCESS
+%token <token> OPEN_PAREN
+%token <token> CLOSE_PAREN
 
 %token <token> OPEN_BRACE
 %token <token> CLOSE_BRACE
@@ -112,12 +118,13 @@ void yyerror(const YYLTYPE * location, const char * message) {}
 %type  <command> command
 %type  <commandList> command_list command_list_opt pre_build_decl post_build_decl 
 %type  <program> program
-%type  <decl>    project_decl section_decl var_decl
+%type  <decl>    project_decl section_decl var_decl conditional_decl
 %type  <text>    compiler_decl output_decl
 %type  <decls>   section_list_opt
 %type  <items>   sources_decl flags_decl libraries_decl headers_decl arg_list_opt arg_list use_items
 %type  <decl>    log_decl
 %type  <integer> log_mode
+%type  <condition> condition
 
 //Lo dejo comentado para ver como se usa si lo necesitaramos
 /**
@@ -187,6 +194,7 @@ section_decl
   | build_decl                                   { $$ = MakeBuildDecl(); }
   | run_decl                                     { $$ = MakeRunDecl(); }
   | log_decl                                     { $$ = $1; }
+  | conditional_decl                             { $$ = $1; }
   ;
 
 sources_decl
@@ -272,6 +280,18 @@ log_decl
 log_mode
   : APPEND                                      { $$ = MakeLogMode(APPEND_MODE); }
   | OVERWRITE                                   { $$ = MakeLogMode(OVERWRITE_MODE); }
+  ;
+
+conditional_decl
+  : IF condition OPEN_BRACE command_list_opt CLOSE_BRACE
+    { $$ = MakeConditionalDecl($2, $4); }
+  ;
+
+condition
+  : FAIL OPEN_PAREN IDENT CLOSE_PAREN
+    { $$ = MakeCondition(CONDITION_FAIL, $3); }
+  | SUCCESS OPEN_PAREN IDENT CLOSE_PAREN
+    { $$ = MakeCondition(CONDITION_SUCCESS, $3); }
   ;
 
 %%

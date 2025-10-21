@@ -11,6 +11,8 @@
 %option yylineno
 
 %{
+static int in_parens = 0;
+static int in_conditional = 0;
 
 /**
  * @see https://westes.github.io/flex/manual/Definitions-Section.html#Definitions-Section
@@ -36,8 +38,8 @@ extern CompilationStatus TextualLexemeAction(TokenLabel label);  /* IDENT, TEXT 
 /* Patrones reusables */
 whitespace          [[:space:]]+
 
-/* Un átomo de texto sin espacios ni llaves/comas/comillas/punto y coma (flags, paths, args, libs, etc.) */
-text_atom           [^[:space:]{},";]+
+/* Un átomo de texto sin espacios ni llaves/comas/comillas/punto y coma/parentesis (flags, paths, args, libs, etc.) */
+text_atom           [^[:space:]{},";()]+
 
 /* Palabras clave (MakeLite-C) */
 %%
@@ -53,14 +55,31 @@ text_atom           [^[:space:]{},";]+
 "run"               { return SimpleLexemeAction(RUN); }
 "var"               { return SimpleLexemeAction(VAR); }
 "use"               { return SimpleLexemeAction(USE); }
-"pre_build"         { BEGIN(COMMANDS); return SimpleLexemeAction(PRE_BUILD); }
-"post_build"        { BEGIN(COMMANDS); return SimpleLexemeAction(POST_BUILD); }
+"pre_build"         { 
+    if (in_parens) {
+        return TextualLexemeAction(IDENT);
+    } else {
+        BEGIN(COMMANDS); 
+        return SimpleLexemeAction(PRE_BUILD);
+    }
+}
+"post_build"        { 
+    if (in_parens) {
+        return TextualLexemeAction(IDENT);
+    } else {
+        BEGIN(COMMANDS); 
+        return SimpleLexemeAction(POST_BUILD);
+    }
+}
 "clean"             { return SimpleLexemeAction(CLEAN); }
 "test"              { return SimpleLexemeAction(TEST); }
 "target"            { return SimpleLexemeAction(TARGET); }
 "log"               { return SimpleLexemeAction(LOG); }
 "append"            { return SimpleLexemeAction(APPEND); }
 "overwrite"         { return SimpleLexemeAction(OVERWRITE); }
+"if"                { BEGIN(INITIAL); in_conditional = 1; return SimpleLexemeAction(IF); }
+"fail"              { return SimpleLexemeAction(FAIL); }
+"success"           { return SimpleLexemeAction(SUCCESS); }
 
 <COMMANDS>"mkdir"   { return SimpleLexemeAction(MKDIR); }
 <COMMANDS>"rm"      { return SimpleLexemeAction(RM); }
@@ -68,22 +87,32 @@ text_atom           [^[:space:]{},";]+
 <COMMANDS>"mv"      { return SimpleLexemeAction(MV); }
 <COMMANDS>"{"       { return SimpleLexemeAction(OPEN_BRACE); }
 <COMMANDS>"}"       { BEGIN(INITIAL); return SimpleLexemeAction(CLOSE_BRACE); }
-"{"                 { return SimpleLexemeAction(OPEN_BRACE); }
+<COMMANDS>[[:alpha:]_][[:alnum:]_]*   { return TextualLexemeAction(IDENT); }
+"{"                 { 
+    if (in_conditional) {
+        BEGIN(COMMANDS);
+        in_conditional = 0;
+    }
+    return SimpleLexemeAction(OPEN_BRACE); 
+}
 "}"                 { return SimpleLexemeAction(CLOSE_BRACE); }
 ","                 { return SimpleLexemeAction(COMMA); }
 ";"                 { return SimpleLexemeAction(SEMICOLON); }
 "=>"                { return SimpleLexemeAction(ARROW); }
 "="                 { return SimpleLexemeAction(ASSIGN); }
+"("                 { in_parens = 1; return SimpleLexemeAction(OPEN_PAREN); }
+")"                 { in_parens = 0; return SimpleLexemeAction(CLOSE_PAREN); }
 
-[[:alpha:]_][[:alnum:]_]*   { return TextualLexemeAction(IDENT); }
 
-{text_atom}                 { return TextualLexemeAction(TEXT); }
+"/*"                        { return EnterMultilineCommentLexemeAction(MULTILINE_COMMENT); }
 
 "//[^\n]*"                         { return IgnoredLexemeAction(); }
 <COMMANDS>\n                        { return IgnoredLexemeAction(); }
 <COMMANDS>{whitespace}           { return IgnoredLexemeAction(); }
 
-"/*"                        { return EnterMultilineCommentLexemeAction(MULTILINE_COMMENT); }
+[[:alpha:]_][[:alnum:]_]*   { return TextualLexemeAction(IDENT); }
+
+{text_atom}                 { return TextualLexemeAction(TEXT); }
 <MULTILINE_COMMENT>"*/"     { return LeaveMultilineCommentLexemeAction(); }
 <MULTILINE_COMMENT>[^*]+    { return IgnoredLexemeAction(); }
 <MULTILINE_COMMENT>.        { return IgnoredLexemeAction(); }

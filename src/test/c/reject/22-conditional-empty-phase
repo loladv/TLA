@@ -1,0 +1,11 @@
+project empty_phase_test
+compiler gcc
+flags { -Wall }
+sources { main.c }
+
+if fail() {
+rm -rf temp/
+mkdir error_logs
+}
+
+build

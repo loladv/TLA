@@ -1,0 +1,11 @@
+project unknown_phase_test
+compiler gcc
+flags { -Wall }
+sources { main.c }
+
+if fail(nonexistent_phase) {
+rm -rf temp/
+mkdir error_logs
+}
+
+build

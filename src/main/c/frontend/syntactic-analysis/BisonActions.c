@@ -64,6 +64,16 @@ static bool _contains(const char * s, const char * needle) {
     return (s != NULL && needle != NULL && strstr(s, needle) != NULL);
 }
 
+static bool _phaseExists(const char* phaseName, DeclList* sections) {
+    for (DeclList* it = sections; it != NULL; it = it->next) {
+        if (it->decl) {
+            if (it->decl->type == PRE_BUILD_DECL && strcmp(phaseName, "pre_build") == 0) return true;
+            if (it->decl->type == POST_BUILD_DECL && strcmp(phaseName, "post_build") == 0) return true;
+        }
+    }
+    return false;
+}
+
 bool IsUnsupportedGlob(const char * text) {
     if (text == NULL) return false;
     /* Rechazar recursivo ** */
@@ -168,6 +178,20 @@ Program* MakeProgram(Decl* projectDecl, DeclList* sections){
         logError(_logger, "No source files declared (missing or empty src section).");
         _semanticError = true;
     }
+    
+    // Validate conditional phase references
+    for (DeclList* it = sections; it != NULL; it = it->next) {
+        if (it->decl && it->decl->type == CONDITIONAL_DECL) {
+            if (it->decl->conditionalPhase.condition) {
+                const char* phaseName = it->decl->conditionalPhase.condition->phaseName;
+                if (!_phaseExists(phaseName, sections)) {
+                    logError(_logger, "Conditional references unknown phase '%s'", phaseName);
+                    _semanticError = true;
+                }
+            }
+        }
+    }
+    
 	return program;
 }
 
@@ -501,4 +525,21 @@ ItemList* UseVar(char* name){
     _semanticError = true;
     free(name);
     return NULL;
+}
+
+Condition* MakeCondition(ConditionType type, char* phaseName) {
+    _logSyntacticAnalyzerAction(__FUNCTION__);
+    Condition* c = calloc(1, sizeof(Condition));
+    c->type = type;
+    c->phaseName = phaseName;
+    return c;
+}
+
+Decl* MakeConditionalDecl(Condition* cond, CommandList* cmds) {
+    _logSyntacticAnalyzerAction(__FUNCTION__);
+    Decl* d = calloc(1, sizeof(Decl));
+    d->type = CONDITIONAL_DECL;
+    d->conditionalPhase.condition = cond;
+    d->conditionalPhase.body = cmds;
+    return d;
 }

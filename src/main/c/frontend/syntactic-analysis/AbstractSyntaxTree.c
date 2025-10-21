@@ -116,6 +116,16 @@ void destroyCommandList(CommandList *commandList) {
     }
 }
 
+void destroyCondition(Condition* condition) {
+    logDebugging(_logger, "Executing destructor: %s", __FUNCTION__);
+    if (condition != NULL) {
+        if (condition->phaseName != NULL) {
+            free(condition->phaseName);
+        }
+        free(condition);
+    }
+}
+
 void destroyDecl(Decl * decl) {
     logDebugging(_logger, "Executing destructor: %s", __FUNCTION__);
     if (decl != NULL) {
@@ -162,6 +172,10 @@ void destroyDecl(Decl * decl) {
                     free(decl->logPath);
                 }
                 // logMode is an enum, no need to free
+                break;
+            case CONDITIONAL_DECL:
+                destroyCondition(decl->conditionalPhase.condition);
+                destroyCommandList(decl->conditionalPhase.body);
                 break;
         }
         free(decl);

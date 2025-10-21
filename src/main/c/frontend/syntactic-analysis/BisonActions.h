@@ -55,6 +55,8 @@ Decl*     MakeBuildDecl(void);
 Decl*     MakeRunDecl(void);
 Decl*     MakeLogDecl(char* path, int mode);
 int       MakeLogMode(int mode);
+Decl*     MakeConditionalDecl(Condition* cond, CommandList* cmds);
+Condition* MakeCondition(ConditionType type, char* phaseName);
 
 /* args de src/flags/libs and var expansion */
 ItemList* MakeArgListEmpty(void);

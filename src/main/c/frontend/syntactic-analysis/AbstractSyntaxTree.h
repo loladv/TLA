@@ -91,6 +91,7 @@ typedef enum DeclType DeclType;
 typedef enum ItemType ItemType;
 typedef enum LogMode LogMode;
 typedef enum CommandType CommandType;
+typedef enum ConditionType ConditionType;
 
 
 typedef struct Decl Decl;
@@ -100,6 +101,7 @@ typedef struct ItemList ItemList;
 typedef struct Program Program;
 typedef struct Command Command;
 typedef struct CommandList CommandList;
+typedef struct Condition Condition;
 
 // Tipos de declaraciones
 enum DeclType {
@@ -114,7 +116,8 @@ enum DeclType {
     FLAGS_DECL,      // flags { -O2, -Wall }
     BUILD_DECL,      // build
     RUN_DECL,        // run
-    LOG_DECL         // log { path "file.log"; mode append }
+    LOG_DECL,        // log { path "file.log"; mode append }
+    CONDITIONAL_DECL // if fail/success(phase) { commands }
 };
 
 // Tipos de items 
@@ -133,6 +136,11 @@ enum CommandType {
     RM_CMD,
     CP_CMD,
     MV_CMD
+};
+
+enum ConditionType {
+    CONDITION_FAIL,
+    CONDITION_SUCCESS
 };
 
 // Estructura para declaraciones individuales
@@ -171,6 +179,12 @@ struct Decl {
         struct {
             CommandList *commands;  // POST_BUILD: { cp a.out bin/ }
         } postBuildCommands;       
+
+        struct {
+            Condition* condition;   // CONDITIONAL: condition type and phase name
+            CommandList* body;     // CONDITIONAL: commands to execute
+        } conditionalPhase;       
+
         // BUILD y RUN no necesitan datos adicionales
     };
 };
@@ -211,6 +225,12 @@ struct CommandList {
     CommandList *next;
 };
 
+// Estructura para condiciones
+struct Condition {
+    ConditionType type;
+    char* phaseName;
+};
+
 void destroyDecl(Decl * decl);
 void destroyDeclList(DeclList * declList);
 void destroyItem(Item * item);
@@ -218,5 +238,6 @@ void destroyItemList(ItemList * itemList);
 void destroyProgram(Program * program);
 void destroyCommand(Command *command);
 void destroyCommandList(CommandList *commandList);
+void destroyCondition(Condition* condition);
 
 #endif
