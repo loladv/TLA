@@ -1,0 +1,5 @@
+project testGlobRecursive
+sources { **/*.c }
+headers { **/*.h }
+build
+run

@@ -71,12 +71,14 @@ void yyerror(const YYLTYPE * location, const char * message) {}
 %token <token> BUILD
 %token <token> RUN
 %token <token> VAR
+%token <token> CONSTANT
 %token <token> USE
 %token <token> PRE_BUILD
 %token <token> POST_BUILD
 %token <token> CLEAN
 %token <token> TEST
 %token <token> TARGET
+%token <token> PHASE
 %token <token> LOG
 %token <token> APPEND
 %token <token> OVERWRITE
@@ -85,6 +87,8 @@ void yyerror(const YYLTYPE * location, const char * message) {}
 %token <token> SUCCESS
 %token <token> OPEN_PAREN
 %token <token> CLOSE_PAREN
+%token <token> OPEN_VAR
+%token <token> CLOSE_VAR
 
 %token <token> OPEN_BRACE
 %token <token> CLOSE_BRACE
@@ -118,7 +122,7 @@ void yyerror(const YYLTYPE * location, const char * message) {}
 %type  <command> command
 %type  <commandList> command_list command_list_opt pre_build_decl post_build_decl 
 %type  <program> program
-%type  <decl>    project_decl section_decl var_decl conditional_decl
+%type  <decl>    project_decl section_decl var_decl conditional_decl custom_phase_decl
 %type  <text>    compiler_decl output_decl
 %type  <decls>   section_list_opt
 %type  <items>   sources_decl flags_decl libraries_decl headers_decl arg_list_opt arg_list use_items
@@ -195,6 +199,7 @@ section_decl
   | run_decl                                     { $$ = MakeRunDecl(); }
   | log_decl                                     { $$ = $1; }
   | conditional_decl                             { $$ = $1; }
+  | custom_phase_decl                            { $$ = $1; }
   ;
 
 sources_decl
@@ -246,6 +251,10 @@ command_list_opt
 
 command
   : TEXT { $$ = MakeCommandFromLine($1); }
+  | MKDIR arg_list_opt { $$ = MakeCommand(MKDIR_CMD, $2); }
+  | RM arg_list_opt { $$ = MakeCommand(RM_CMD, $2); }
+  | CP arg_list_opt { $$ = MakeCommand(CP_CMD, $2); }
+  | MV arg_list_opt { $$ = MakeCommand(MV_CMD, $2); }
   ;
 
 arg_list_opt
@@ -267,10 +276,12 @@ arg_list
 
 use_items
   : USE IDENT                                    { $$ = UseVar($2); }
+  | OPEN_VAR IDENT CLOSE_BRACE                  { $$ = UseVar($2); }
   ;
 
 var_decl
   : VAR IDENT ASSIGN arg_list_opt                { VarAssign($2, $4); $$ = NULL; }
+  | CONSTANT IDENT ASSIGN arg_list_opt           { VarAssign($2, $4); $$ = NULL; }
   ;
 
 log_decl
@@ -292,6 +303,11 @@ condition
     { $$ = MakeCondition(CONDITION_FAIL, $3); }
   | SUCCESS OPEN_PAREN IDENT CLOSE_PAREN
     { $$ = MakeCondition(CONDITION_SUCCESS, $3); }
+  ;
+
+custom_phase_decl
+  : PHASE IDENT OPEN_BRACE command_list_opt CLOSE_BRACE
+    { $$ = MakeCustomPhaseDecl($2, $4); }
   ;
 
 %%

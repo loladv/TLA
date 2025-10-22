@@ -1,0 +1,11 @@
+project testCommandNoArgs
+sources { main.c }
+
+pre_build {
+mkdir
+rm
+cp
+mv
+}
+
+build

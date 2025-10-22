@@ -1,0 +1,6 @@
+constant X = a b c
+var Y = d e f
+project testInterpolationMixed
+sources { use X, ${Y} }
+build
+run

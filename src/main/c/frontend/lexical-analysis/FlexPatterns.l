@@ -34,12 +34,16 @@ extern CompilationStatus TextualLexemeAction(TokenLabel label);  /* IDENT, TEXT 
 /* Contexto para comentarios multilínea (como el template) */
 %x MULTILINE_COMMENT
 %x COMMANDS
+%x VAR_INTERPOLATION
 
 /* Patrones reusables */
 whitespace          [[:space:]]+
 
 /* Un átomo de texto sin espacios ni llaves/comas/comillas/punto y coma/parentesis (flags, paths, args, libs, etc.) */
 text_atom           [^[:space:]{},";()]+
+
+/* Patrones para rutas completas (incluyendo barras y puntos) */
+path_atom           [^[:space:]{},";()]+
 
 /* Palabras clave (MakeLite-C) */
 %%
@@ -54,6 +58,7 @@ text_atom           [^[:space:]{},";()]+
 "build"             { return SimpleLexemeAction(BUILD); }
 "run"               { return SimpleLexemeAction(RUN); }
 "var"               { return SimpleLexemeAction(VAR); }
+"constant"          { return SimpleLexemeAction(CONSTANT); }
 "use"               { return SimpleLexemeAction(USE); }
 "pre_build"         { 
     if (in_parens) {
@@ -74,6 +79,7 @@ text_atom           [^[:space:]{},";()]+
 "clean"             { return SimpleLexemeAction(CLEAN); }
 "test"              { return SimpleLexemeAction(TEST); }
 "target"            { return SimpleLexemeAction(TARGET); }
+"phase"             { return SimpleLexemeAction(PHASE); }
 "log"               { return SimpleLexemeAction(LOG); }
 "append"            { return SimpleLexemeAction(APPEND); }
 "overwrite"         { return SimpleLexemeAction(OVERWRITE); }
@@ -81,10 +87,10 @@ text_atom           [^[:space:]{},";()]+
 "fail"              { return SimpleLexemeAction(FAIL); }
 "success"           { return SimpleLexemeAction(SUCCESS); }
 
-<COMMANDS>"mkdir"   { return SimpleLexemeAction(MKDIR); }
-<COMMANDS>"rm"      { return SimpleLexemeAction(RM); }
-<COMMANDS>"cp"      { return SimpleLexemeAction(CP); }
-<COMMANDS>"mv"      { return SimpleLexemeAction(MV); }
+"mkdir"            { return SimpleLexemeAction(MKDIR); }
+"rm"               { return SimpleLexemeAction(RM); }
+"cp"               { return SimpleLexemeAction(CP); }
+"mv"               { return SimpleLexemeAction(MV); }
 <COMMANDS>"{"       { return SimpleLexemeAction(OPEN_BRACE); }
 <COMMANDS>"}"       { BEGIN(INITIAL); return SimpleLexemeAction(CLOSE_BRACE); }
 <COMMANDS>[[:alpha:]_][[:alnum:]_]*   { return TextualLexemeAction(IDENT); }
@@ -102,6 +108,7 @@ text_atom           [^[:space:]{},";()]+
 "="                 { return SimpleLexemeAction(ASSIGN); }
 "("                 { in_parens = 1; return SimpleLexemeAction(OPEN_PAREN); }
 ")"                 { in_parens = 0; return SimpleLexemeAction(CLOSE_PAREN); }
+"${"                { BEGIN(VAR_INTERPOLATION); return SimpleLexemeAction(OPEN_VAR); }
 
 
 "/*"                        { return EnterMultilineCommentLexemeAction(MULTILINE_COMMENT); }
@@ -120,6 +127,10 @@ text_atom           [^[:space:]{},";()]+
 {whitespace}        { return IgnoredLexemeAction(); }
 
 <COMMANDS>[^\n{}]+   { return TextualLexemeAction(TEXT); }
+
+<VAR_INTERPOLATION>[[:alpha:]_][[:alnum:]_]*   { BEGIN(INITIAL); return TextualLexemeAction(IDENT); }
+<VAR_INTERPOLATION>"}"                         { BEGIN(INITIAL); return SimpleLexemeAction(CLOSE_BRACE); }
+<VAR_INTERPOLATION>{whitespace}                { return IgnoredLexemeAction(); }
 
 .                   { return UnknownLexemeAction(); }
 

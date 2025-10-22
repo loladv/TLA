@@ -1,0 +1,5 @@
+project testGlobNegation
+sources { !*.c }
+headers { !test*.h }
+build
+run

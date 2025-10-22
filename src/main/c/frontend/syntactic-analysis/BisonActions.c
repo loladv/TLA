@@ -76,14 +76,7 @@ static bool _phaseExists(const char* phaseName, DeclList* sections) {
 
 bool IsUnsupportedGlob(const char * text) {
     if (text == NULL) return false;
-    /* Rechazar recursivo ** */
-    if (_contains(text, "**")) return true;
-    /* Rechazar negación ! */
-    if (strchr(text, '!') != NULL) return true;
-    /* Rechazar clases de caracteres [ ... ] */
-    const char * lb = strchr(text, '[');
-    const char * rb = strchr(text, ']');
-    if (lb != NULL && rb != NULL && lb < rb) return true;
+    /* Ahora permitimos todos los patrones GLOB avanzados */
     return false;
 }
 
@@ -541,5 +534,14 @@ Decl* MakeConditionalDecl(Condition* cond, CommandList* cmds) {
     d->type = CONDITIONAL_DECL;
     d->conditionalPhase.condition = cond;
     d->conditionalPhase.body = cmds;
+    return d;
+}
+
+Decl* MakeCustomPhaseDecl(char* phaseName, CommandList* commands) {
+    _logSyntacticAnalyzerAction(__FUNCTION__);
+    Decl* d = calloc(1, sizeof(Decl));
+    d->type = CUSTOM_PHASE_DECL;
+    d->customPhase.phaseName = phaseName;
+    d->customPhase.commands = commands;
     return d;
 }

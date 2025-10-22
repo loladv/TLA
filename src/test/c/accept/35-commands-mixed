@@ -1,0 +1,16 @@
+project testCommandsMixed
+sources { main.c }
+
+pre_build {
+mkdir build
+mkdir src/obj
+}
+
+post_build {
+cp main build/
+mv build/main build/app
+rm main
+}
+
+build
+run

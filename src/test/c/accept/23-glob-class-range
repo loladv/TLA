@@ -1,0 +1,5 @@
+project testGlobClassRange
+sources { *.c[123] }
+headers { test[abc].h }
+build
+run

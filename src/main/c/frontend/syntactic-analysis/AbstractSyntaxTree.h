@@ -117,7 +117,8 @@ enum DeclType {
     BUILD_DECL,      // build
     RUN_DECL,        // run
     LOG_DECL,        // log { path "file.log"; mode append }
-    CONDITIONAL_DECL // if fail/success(phase) { commands }
+    CONDITIONAL_DECL, // if fail/success(phase) { commands }
+    CUSTOM_PHASE_DECL // phase my_phase { commands }
 };
 
 // Tipos de items 
@@ -184,6 +185,11 @@ struct Decl {
             Condition* condition;   // CONDITIONAL: condition type and phase name
             CommandList* body;     // CONDITIONAL: commands to execute
         } conditionalPhase;       
+
+        struct {
+            char* phaseName;       // CUSTOM_PHASE: name of the custom phase
+            CommandList* commands; // CUSTOM_PHASE: commands to execute
+        } customPhase;            
 
         // BUILD y RUN no necesitan datos adicionales
     };

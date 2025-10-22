@@ -1,0 +1,6 @@
+project testFullPaths
+compiler /usr/bin/gcc
+output /tmp/myapp
+sources { main.c }
+build
+run

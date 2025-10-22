@@ -1,0 +1,6 @@
+project testRelativePaths
+compiler ./bin/gcc
+output ./build/app
+sources { src/main.c }
+build
+run

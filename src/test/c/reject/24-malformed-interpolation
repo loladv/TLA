@@ -1,0 +1,3 @@
+project testMalformedInterpolation
+sources { ${X }
+build
