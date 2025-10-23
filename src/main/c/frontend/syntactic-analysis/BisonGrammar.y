@@ -141,7 +141,8 @@ void yyerror(const YYLTYPE * location, const char * message) {}
 %left ADD SUB
 %left MUL DIV
 */
-
+%left MKDIR RM CP MV 
+%left TEXT
 %%
 
 // IMPORTANT: To use λ in the following grammar, use the %empty symbol.
@@ -174,7 +175,7 @@ program
 
 var_decl_list_opt
   : %empty
-  | var_decl_list_opt var_decl                   { /* Process var_decl but don't return it */ }
+  | var_decl_list_opt var_decl                   { /* Process var_decl but don't return it */ (void)$2; }  
   ;
 
 project_decl
@@ -240,7 +241,7 @@ build_decl : BUILD ;
 run_decl   : RUN   ;
 
 opt_semicolon
-  : /* empty */ { }
+   : %empty
   | SEMICOLON   { }
   ;
 
@@ -256,10 +257,10 @@ command_list_opt
 
 command
   : TEXT { $$ = MakeCommandFromLine($1); }
-  | MKDIR arg_list_opt { $$ = MakeCommand(MKDIR_CMD, $2); }
-  | RM arg_list_opt { $$ = MakeCommand(RM_CMD, $2); }
-  | CP arg_list_opt { $$ = MakeCommand(CP_CMD, $2); }
-  | MV arg_list_opt { $$ = MakeCommand(MV_CMD, $2); }
+  | MKDIR arg_list { $$ = MakeCommand(MKDIR_CMD, $2); }
+  | RM arg_list { $$ = MakeCommand(RM_CMD, $2); }
+  | CP arg_list { $$ = MakeCommand(CP_CMD, $2); }
+  | MV arg_list { $$ = MakeCommand(MV_CMD, $2); }
   ;
 
 arg_list_opt
