@@ -56,7 +56,7 @@ void yyerror(const YYLTYPE * location, const char * message) {}
 %destructor { destroyDecl($$); } <decl>
 %destructor { destroyDeclList($$); } <decls>
 %destructor { destroyItemList($$); } <items>
-
+%destructor { free($$  ); } <text>
 
 
 /** Terminals. */
@@ -239,6 +239,11 @@ build_decl : BUILD ;
 
 run_decl   : RUN   ;
 
+opt_semicolon
+  : /* empty */ { }
+  | SEMICOLON   { }
+  ;
+
 command_list_opt
   : %empty                  { $$ = NULL; } 
   | command_list            { $$ = $1; }
@@ -306,8 +311,8 @@ condition
   ;
 
 custom_phase_decl
-  : PHASE IDENT OPEN_BRACE command_list_opt CLOSE_BRACE
-    { $$ = MakeCustomPhaseDecl($2, $4); }
+  : PHASE IDENT OPEN_BRACE command_list_opt CLOSE_BRACE opt_semicolon 
+     {   $$ = MakeCustomPhaseDecl($2, $4); }
   ;
 
 %%

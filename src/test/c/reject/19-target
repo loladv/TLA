@@ -1,0 +1,7 @@
+project my_targets
+sources { main.c }
+target docs {
+    mkdir docs_output
+    cp Readme.md docs_output/
+}
+build

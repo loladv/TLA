@@ -177,6 +177,12 @@ void destroyDecl(Decl * decl) {
                 destroyCondition(decl->conditionalPhase.condition);
                 destroyCommandList(decl->conditionalPhase.body);
                 break;
+            case CUSTOM_PHASE_DECL:
+                if (decl->customPhase.phaseName != NULL) {
+                    free(decl->customPhase.phaseName);
+                }
+                destroyCommandList(decl->customPhase.commands);
+                break;
         }
         free(decl);
     }
