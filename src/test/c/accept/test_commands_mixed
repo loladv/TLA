@@ -3,7 +3,6 @@ sources { main.c }
 
 pre_build {
 mkdir build
-echo "Building..."
 }
 
 post_build {
