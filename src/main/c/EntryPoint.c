@@ -1,5 +1,13 @@
+// Template includes from calculator example (commented out)
 //#include "backend/code-generation/Generator.h"
 //#include "backend/domain-specific/Calculator.h"
+
+// New backend includes for MakeLite-C
+#include "backend/domain-specific/SemanticAnalyzer.h"
+#include "backend/domain-specific/VariableResolver.h"
+#include "backend/domain-specific/GlobExpander.h"
+#include "backend/code-generation/MakefileGenerator.h"
+
 #include "frontend/Frontend.h"
 #include "frontend/lexical-analysis/FlexActions.h"
 #include "frontend/syntactic-analysis/BisonActions.h"
@@ -30,12 +38,19 @@ const int main(const int length, const char ** arguments) {
 		initializeFrontendModule(lexicalAnalyzer),
 		//initializeCalculatorModule(),
 		//initializeGeneratorModule()
+		// New backend module initializations for MakeLite-C
+		initializeSemanticAnalyzerModule(),
+		initializeVariableResolverModule(),
+		initializeGlobExpanderModule(),
+		initializeMakefileGeneratorModule()
 	};
 	CompilationStatus compilationStatus = executeSyntacticAnalysis();
 	Program * program = compilerState.abstractSyntaxtTree;
 	if (compilationStatus == SUCCEEDED) {
 		// ----------------------------------------------------------------------------------------
 		// Beginning of the Backend... ------------------------------------------------------------
+		
+		// Template backend code from calculator example (commented out)
 		/*
 		logDebugging(logger, "Computing expression value...");
 		ComputationResult computationResult = executeCalculator(&compilerState);
@@ -48,6 +63,36 @@ const int main(const int length, const char ** arguments) {
 			compilationStatus = FAILED;
 		}
 		*/
+		
+		// New backend for MakeLite-C
+		logDebugging(logger, "Starting semantic analysis...");
+		compilationStatus = executeSemanticAnalysis(&compilerState);
+		
+		if (compilationStatus == SUCCEEDED) {
+			logDebugging(logger, "Resolving variables...");
+			compilationStatus = resolveVariables(&compilerState);
+			
+			if (compilationStatus == SUCCEEDED) {
+				logDebugging(logger, "Expanding glob patterns...");
+				compilationStatus = expandGlobPatterns(&compilerState);
+				
+				if (compilationStatus == SUCCEEDED) {
+					logDebugging(logger, "Generating Makefile...");
+					CompilationStatus genStatus = executeMakefileGenerator(&compilerState);
+					if (genStatus != SUCCEEDED) {
+						logError(logger, "Makefile generation failed.");
+						compilationStatus = FAILED;
+					}
+				} else {
+					logError(logger, "Glob pattern expansion failed.");
+				}
+			} else {
+				logError(logger, "Variable resolution failed.");
+			}
+		} else {
+			logError(logger, "Semantic analysis failed.");
+		}
+		
 		// ...end of the Backend. -----------------------------------------------------------------
 		// ----------------------------------------------------------------------------------------
 	}
