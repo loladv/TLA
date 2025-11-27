@@ -38,6 +38,19 @@ static bool _isGlobPattern(const char * text) {
 }
 
 /**
+ * Creates an ItemList node that keeps the literal text unchanged.
+ */
+static ItemList * _createLiteralItem(const char * text) {
+	ItemList * node = calloc(1, sizeof(ItemList));
+	node->item = calloc(1, sizeof(Item));
+	node->item->type = TEXT_ITEM;
+	if (text != NULL) {
+		node->item->text = strdup(text);
+	}
+	return node;
+}
+
+/**
  * Expands a single glob pattern to a list of items.
  * Returns the expanded item list, or NULL on error.
  */
@@ -50,13 +63,13 @@ static ItemList * _expandGlobPattern(const char * pattern) {
 	memset(&globResult, 0, sizeof(glob_t));
 	
 	int ret = glob(pattern, GLOB_TILDE, NULL, &globResult);
+	if (ret == GLOB_NOMATCH) {
+		logWarning(_logger, "Glob pattern '%s' matches no files, keeping literal.", pattern);
+		return _createLiteralItem(pattern);
+	}
+	
 	if (ret != 0) {
-		if (ret == GLOB_NOMATCH) {
-			logError(_logger, "Glob pattern matches no files: %s", pattern);
-		} else {
-			logError(_logger, "Error expanding glob pattern '%s' (code %d).", pattern, ret);
-		}
-		
+		logError(_logger, "Error expanding glob pattern '%s' (code %d).", pattern, ret);
 		globfree(&globResult);
 		return NULL;
 	}
@@ -85,6 +98,11 @@ static ItemList * _expandGlobPattern(const char * pattern) {
 	}
 	
 	globfree(&globResult);
+	
+	if (head == NULL) {
+		return _createLiteralItem(pattern);
+	}
+	
 	return head;
 }
 
@@ -145,47 +163,30 @@ static bool _expandGlobPatternsInProgram(Program * program) {
 				continue;
 			}
 			
+			ItemList * expansion = NULL;
+			
 			if (_isGlobPattern(itemIt->item->text)) {
-				ItemList * expanded = _expandGlobPattern(itemIt->item->text);
-				if (expanded == NULL) {
+				expansion = _expandGlobPattern(itemIt->item->text);
+				if (expansion == NULL) {
 					if (expandedHead != NULL) {
 						destroyItemList(expandedHead);
 					}
 					return false;
 				}
-				
-				if (expandedHead == NULL) {
-					expandedHead = expanded;
-					expandedTail = expanded;
-				} else {
-					expandedTail->next = expanded;
-				}
-				
-				while (expandedTail->next != NULL) {
-					expandedTail = expandedTail->next;
-				}
 			} else {
-				ItemList * copyNode = calloc(1, sizeof(ItemList));
-				copyNode->item = calloc(1, sizeof(Item));
-				copyNode->item->type = itemIt->item->type;
-				if (itemIt->item->text != NULL) {
-					copyNode->item->text = strdup(itemIt->item->text);
-				}
-				copyNode->next = NULL;
-				
-				if (expandedHead == NULL) {
-					expandedHead = copyNode;
-					expandedTail = copyNode;
-				} else {
-					expandedTail->next = copyNode;
-					expandedTail = copyNode;
-				}
+				expansion = _createLiteralItem(itemIt->item->text);
 			}
-		}
-		
-		if (expandedHead == NULL) {
-			logError(_logger, "Glob expansion for declaration resulted in empty list.");
-			return false;
+			
+			if (expandedHead == NULL) {
+				expandedHead = expansion;
+				expandedTail = expansion;
+			} else {
+				expandedTail->next = expansion;
+			}
+			
+			while (expandedTail->next != NULL) {
+				expandedTail = expandedTail->next;
+			}
 		}
 		
 		destroyItemList(*targetList);
