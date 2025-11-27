@@ -7,6 +7,12 @@
 
 static Logger * _logger = NULL;
 
+typedef struct {
+	bool enabled;
+	LogMode mode;
+	const char * path;
+} LoggingConfig;
+
 /** Shutdown module's internal state. */
 void _shutdownMakefileGeneratorModule() {
 	if (_logger != NULL) {
@@ -42,6 +48,20 @@ static Decl * _findDecl(Program * program, DeclType type) {
 }
 
 /**
+ * Returns the logging configuration for the program, if any.
+ */
+static LoggingConfig _getLoggingConfig(Program * program) {
+	LoggingConfig config = { false, APPEND_MODE, NULL };
+	Decl * logDecl = _findDecl(program, LOG_DECL);
+	if (logDecl != NULL && logDecl->logPath != NULL) {
+		config.enabled = true;
+		config.mode = logDecl->logMode;
+		config.path = logDecl->logPath;
+	}
+	return config;
+}
+
+/**
  * Prints an ItemList to the output file, joining items with spaces.
  */
 static void _printItemList(ItemList * items, FILE * output) {
@@ -59,6 +79,27 @@ static void _printItemList(ItemList * items, FILE * output) {
 			first = false;
 		}
 	}
+}
+
+/**
+ * Writes a command line with optional logging redirection and terminator.
+ */
+static void _writeCommand(FILE * output, const char * indent, const char * commandLine, LoggingConfig logging, const char * terminator) {
+	if (output == NULL || indent == NULL || commandLine == NULL || terminator == NULL) {
+		return;
+	}
+	
+	fprintf(output, "%s@%s", indent, commandLine);
+	
+	if (logging.enabled && logging.path != NULL) {
+		if (logging.mode == APPEND_MODE) {
+			fprintf(output, " >> $(LOG_FILE) 2>&1");
+		} else {
+			fprintf(output, " > $(LOG_FILE) 2>&1");
+		}
+	}
+	
+	fprintf(output, "%s", terminator);
 }
 
 /**
@@ -159,25 +200,14 @@ static void _generateVariables(Program * program, FILE * output) {
 /**
  * Generates commands for a CommandList.
  */
-static void _generateCommands(CommandList * commands, FILE * output, bool hasLogging, LogMode logMode, const char * logPath) {
+static void _generateCommands(CommandList * commands, FILE * output, LoggingConfig logging) {
 	if (commands == NULL) {
 		return;
 	}
 	
 	for (CommandList * it = commands; it != NULL; it = it->next) {
 		if (it->command != NULL && it->command->commandLine != NULL) {
-			fprintf(output, "\t@%s", it->command->commandLine);
-			
-			// Apply logging if configured
-			if (hasLogging && logPath != NULL) {
-				if (logMode == APPEND_MODE) {
-					fprintf(output, " >> $(LOG_FILE) 2>&1");
-				} else {
-					fprintf(output, " > $(LOG_FILE) 2>&1");
-				}
-			}
-			
-			fprintf(output, "\n");
+			_writeCommand(output, "\t", it->command->commandLine, logging, "\n");
 		}
 	}
 }
@@ -188,11 +218,7 @@ static void _generateCommands(CommandList * commands, FILE * output, bool hasLog
 static void _generateTargets(Program * program, FILE * output) {
 	logDebugging(_logger, "Generating targets section...");
 	
-	// Check if logging is configured
-	Decl * logDecl = _findDecl(program, LOG_DECL);
-	bool hasLogging = (logDecl != NULL);
-	LogMode logMode = hasLogging ? logDecl->logMode : APPEND_MODE;
-	const char * logPath = hasLogging ? logDecl->logPath : NULL;
+	LoggingConfig logging = _getLoggingConfig(program);
 	
 	// Generate .PHONY declaration
 	fprintf(output, ".PHONY: pre_build build post_build run\n\n");
@@ -201,10 +227,11 @@ static void _generateTargets(Program * program, FILE * output) {
 	Decl * preBuildDecl = _findDecl(program, PRE_BUILD_DECL);
 	if (preBuildDecl != NULL && preBuildDecl->preBuildCommands.commands != NULL) {
 		fprintf(output, "pre_build:\n");
-		_generateCommands(preBuildDecl->preBuildCommands.commands, output, hasLogging, logMode, logPath);
+		_generateCommands(preBuildDecl->preBuildCommands.commands, output, logging);
 		fprintf(output, "\n");
 	} else {
-		fprintf(output, "pre_build:\n\t@echo \"Pre-build phase\"\n\n");
+		fprintf(output, "pre_build:\n");
+		_writeCommand(output, "\t", "echo \"Pre-build phase\"", logging, "\n\n");
 	}
 	
 	// Generate build target
@@ -218,28 +245,18 @@ static void _generateTargets(Program * program, FILE * output) {
 	
 	if (hasBuild) {
 		fprintf(output, "build: pre_build\n");
-		fprintf(output, "\t@$(CC) $(CFLAGS) $(INCLUDES) -o $(OUTPUT) $(SOURCES) $(LIBS)");
-		
-		// Apply logging to build command
-		if (hasLogging && logPath != NULL) {
-			if (logMode == APPEND_MODE) {
-				fprintf(output, " >> $(LOG_FILE) 2>&1");
-			} else {
-				fprintf(output, " > $(LOG_FILE) 2>&1");
-			}
-		}
-		
-		fprintf(output, "\n\n");
+		_writeCommand(output, "\t", "$(CC) $(CFLAGS) $(INCLUDES) -o $(OUTPUT) $(SOURCES) $(LIBS)", logging, "\n\n");
 	}
 	
 	// Generate post_build target
 	Decl * postBuildDecl = _findDecl(program, POST_BUILD_DECL);
 	if (postBuildDecl != NULL && postBuildDecl->postBuildCommands.commands != NULL) {
 		fprintf(output, "post_build: build\n");
-		_generateCommands(postBuildDecl->postBuildCommands.commands, output, hasLogging, logMode, logPath);
+		_generateCommands(postBuildDecl->postBuildCommands.commands, output, logging);
 		fprintf(output, "\n");
 	} else {
-		fprintf(output, "post_build: build\n\t@echo \"Post-build phase\"\n\n");
+		fprintf(output, "post_build: build\n");
+		_writeCommand(output, "\t", "echo \"Post-build phase\"", logging, "\n\n");
 	}
 	
 	// Generate run target
@@ -253,18 +270,7 @@ static void _generateTargets(Program * program, FILE * output) {
 	
 	if (hasRun) {
 		fprintf(output, "run: post_build\n");
-		fprintf(output, "\t@./$(OUTPUT)");
-		
-		// Apply logging to run command
-		if (hasLogging && logPath != NULL) {
-			if (logMode == APPEND_MODE) {
-				fprintf(output, " >> $(LOG_FILE) 2>&1");
-			} else {
-				fprintf(output, " > $(LOG_FILE) 2>&1");
-			}
-		}
-		
-		fprintf(output, "\n\n");
+		_writeCommand(output, "\t", "./$(OUTPUT)", logging, "\n\n");
 	}
 }
 
@@ -274,8 +280,49 @@ static void _generateTargets(Program * program, FILE * output) {
 static void _generateConditionals(Program * program, FILE * output) {
 	logDebugging(_logger, "Generating conditionals section...");
 	
-	// For minimal implementation, conditionals are optional
-	// This function is a placeholder for future implementation
+	if (program == NULL || output == NULL) {
+		return;
+	}
+	
+	LoggingConfig logging = _getLoggingConfig(program);
+	
+	for (DeclList * it = program->sections; it != NULL; it = it->next) {
+		if (it->decl == NULL || it->decl->type != CONDITIONAL_DECL) {
+			continue;
+		}
+		
+		Condition * condition = it->decl->conditionalPhase.condition;
+		CommandList * body = it->decl->conditionalPhase.body;
+		
+		if (condition == NULL || condition->phaseName == NULL) {
+			continue;
+		}
+		
+		const char * phaseName = condition->phaseName;
+		const char * prefix = (condition->type == CONDITION_FAIL) ? "if_fail" : "if_success";
+		const char * comparison = (condition->type == CONDITION_FAIL) ? "-ne" : "-eq";
+		
+		fprintf(output, ".PHONY: %s_%s\n", prefix, phaseName);
+		fprintf(output, "%s_%s:\n", prefix, phaseName);
+		fprintf(output, "\t@if [ $$? %s 0 ]; then \\\n", comparison);
+		
+		bool wroteBody = false;
+		for (CommandList * cmdIt = body; cmdIt != NULL; cmdIt = cmdIt->next) {
+			if (cmdIt->command == NULL || cmdIt->command->commandLine == NULL) {
+				continue;
+			}
+			_writeCommand(output, "\t\t", cmdIt->command->commandLine, logging, "; \\\n");
+			wroteBody = true;
+		}
+		
+		if (!wroteBody) {
+			char buffer[256];
+			snprintf(buffer, sizeof(buffer), "echo \"Conditional %s_%s has no commands\"", prefix, phaseName);
+			_writeCommand(output, "\t\t", buffer, logging, "; \\\n");
+		}
+		
+		fprintf(output, "\tfi\n\n");
+	}
 }
 
 /**
@@ -284,8 +331,35 @@ static void _generateConditionals(Program * program, FILE * output) {
 static void _generateCustomPhases(Program * program, FILE * output) {
 	logDebugging(_logger, "Generating custom phases section...");
 	
-	// For minimal implementation, custom phases are optional
-	// This function is a placeholder for future implementation
+	if (program == NULL || output == NULL) {
+		return;
+	}
+	
+	LoggingConfig logging = _getLoggingConfig(program);
+	
+	for (DeclList * it = program->sections; it != NULL; it = it->next) {
+		if (it->decl == NULL || it->decl->type != CUSTOM_PHASE_DECL) {
+			continue;
+		}
+		
+		const char * phaseName = it->decl->customPhase.phaseName;
+		if (phaseName == NULL) {
+			continue;
+		}
+		
+		fprintf(output, ".PHONY: %s\n", phaseName);
+		fprintf(output, "%s:\n", phaseName);
+		
+		if (it->decl->customPhase.commands != NULL) {
+			_generateCommands(it->decl->customPhase.commands, output, logging);
+		} else {
+			char buffer[256];
+			snprintf(buffer, sizeof(buffer), "echo \"Custom phase %s has no commands\"", phaseName);
+			_writeCommand(output, "\t", buffer, logging, "\n");
+		}
+		
+		fprintf(output, "\n");
+	}
 }
 
 /** PUBLIC FUNCTIONS */

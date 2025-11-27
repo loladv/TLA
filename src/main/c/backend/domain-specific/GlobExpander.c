@@ -1,4 +1,7 @@
 #include "GlobExpander.h"
+#include <glob.h>
+#include <stdlib.h>
+#include <string.h>
 
 /* MODULE INTERNAL STATE */
 
@@ -25,8 +28,13 @@ ModuleDestructor initializeGlobExpanderModule() {
  * Returns true if it contains glob characters (*, ?, [).
  */
 static bool _isGlobPattern(const char * text) {
-	// TODO: Implement glob pattern detection (Fase 3.2)
-	return false;
+	if (text == NULL) {
+		return false;
+	}
+	
+	return strchr(text, '*') != NULL
+		|| strchr(text, '?') != NULL
+		|| strchr(text, '[') != NULL;
 }
 
 /**
@@ -34,8 +42,50 @@ static bool _isGlobPattern(const char * text) {
  * Returns the expanded item list, or NULL on error.
  */
 static ItemList * _expandGlobPattern(const char * pattern) {
-	// TODO: Implement glob expansion (Fase 3.3)
-	return NULL;
+	if (pattern == NULL) {
+		return NULL;
+	}
+	
+	glob_t globResult;
+	memset(&globResult, 0, sizeof(glob_t));
+	
+	int ret = glob(pattern, GLOB_TILDE, NULL, &globResult);
+	if (ret != 0) {
+		if (ret == GLOB_NOMATCH) {
+			logError(_logger, "Glob pattern matches no files: %s", pattern);
+		} else {
+			logError(_logger, "Error expanding glob pattern '%s' (code %d).", pattern, ret);
+		}
+		
+		globfree(&globResult);
+		return NULL;
+	}
+	
+	ItemList * head = NULL;
+	ItemList * tail = NULL;
+	
+	for (size_t i = 0; i < globResult.gl_pathc; i++) {
+		if (globResult.gl_pathv[i] == NULL) {
+			continue;
+		}
+		
+		ItemList * node = calloc(1, sizeof(ItemList));
+		node->item = calloc(1, sizeof(Item));
+		node->item->type = TEXT_ITEM;
+		node->item->text = strdup(globResult.gl_pathv[i]);
+		node->next = NULL;
+		
+		if (head == NULL) {
+			head = node;
+			tail = node;
+		} else {
+			tail->next = node;
+			tail = node;
+		}
+	}
+	
+	globfree(&globResult);
+	return head;
 }
 
 /**
@@ -43,7 +93,105 @@ static ItemList * _expandGlobPattern(const char * pattern) {
  * Returns true if expansion succeeds, false otherwise.
  */
 static bool _expandGlobPatternsInProgram(Program * program) {
-	// TODO: Implement glob expansion in AST (Fase 3.4)
+	if (program == NULL || program->sections == NULL) {
+		return true;
+	}
+	
+	for (DeclList * it = program->sections; it != NULL; it = it->next) {
+		if (it->decl == NULL) {
+			continue;
+		}
+		
+		ItemList ** targetList = NULL;
+		
+		switch (it->decl->type) {
+			case SRC_DECL:
+				targetList = &it->decl->srcFiles;
+				break;
+			case FLAGS_DECL:
+				targetList = &it->decl->flags;
+				break;
+			case LIBS_DECL:
+				targetList = &it->decl->libs;
+				break;
+			case HEADERS_DECL:
+				targetList = &it->decl->headers;
+				break;
+			default:
+				break;
+		}
+		
+		if (targetList == NULL || *targetList == NULL) {
+			continue;
+		}
+		
+		bool requiresExpansion = false;
+		for (ItemList * itemIt = *targetList; itemIt != NULL; itemIt = itemIt->next) {
+			if (itemIt->item != NULL && _isGlobPattern(itemIt->item->text)) {
+				requiresExpansion = true;
+				break;
+			}
+		}
+		
+		if (!requiresExpansion) {
+			continue;
+		}
+		
+		ItemList * expandedHead = NULL;
+		ItemList * expandedTail = NULL;
+		
+		for (ItemList * itemIt = *targetList; itemIt != NULL; itemIt = itemIt->next) {
+			if (itemIt->item == NULL || itemIt->item->text == NULL) {
+				continue;
+			}
+			
+			if (_isGlobPattern(itemIt->item->text)) {
+				ItemList * expanded = _expandGlobPattern(itemIt->item->text);
+				if (expanded == NULL) {
+					if (expandedHead != NULL) {
+						destroyItemList(expandedHead);
+					}
+					return false;
+				}
+				
+				if (expandedHead == NULL) {
+					expandedHead = expanded;
+					expandedTail = expanded;
+				} else {
+					expandedTail->next = expanded;
+				}
+				
+				while (expandedTail->next != NULL) {
+					expandedTail = expandedTail->next;
+				}
+			} else {
+				ItemList * copyNode = calloc(1, sizeof(ItemList));
+				copyNode->item = calloc(1, sizeof(Item));
+				copyNode->item->type = itemIt->item->type;
+				if (itemIt->item->text != NULL) {
+					copyNode->item->text = strdup(itemIt->item->text);
+				}
+				copyNode->next = NULL;
+				
+				if (expandedHead == NULL) {
+					expandedHead = copyNode;
+					expandedTail = copyNode;
+				} else {
+					expandedTail->next = copyNode;
+					expandedTail = copyNode;
+				}
+			}
+		}
+		
+		if (expandedHead == NULL) {
+			logError(_logger, "Glob expansion for declaration resulted in empty list.");
+			return false;
+		}
+		
+		destroyItemList(*targetList);
+		*targetList = expandedHead;
+	}
+	
 	return true;
 }
 
