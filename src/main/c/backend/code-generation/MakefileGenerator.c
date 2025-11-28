@@ -242,6 +242,41 @@ static void _generateCommands(CommandList * commands, FILE * output, LoggingConf
 }
 
 /**
+ * Checks if there are conditionals for a specific phase.
+ * Returns true if there's a success conditional, false otherwise.
+ * Sets hasSuccess and hasFail to indicate which conditionals exist.
+ */
+static void _hasConditionalForPhase(Program * program, const char * phaseName, bool * hasSuccess, bool * hasFail) {
+	if (program == NULL || phaseName == NULL || hasSuccess == NULL || hasFail == NULL) {
+		if (hasSuccess != NULL) *hasSuccess = false;
+		if (hasFail != NULL) *hasFail = false;
+		return;
+	}
+	
+	*hasSuccess = false;
+	*hasFail = false;
+	
+	for (DeclList * it = program->sections; it != NULL; it = it->next) {
+		if (it->decl == NULL || it->decl->type != CONDITIONAL_DECL) {
+			continue;
+		}
+		
+		Condition * condition = it->decl->conditionalPhase.condition;
+		if (condition == NULL || condition->phaseName == NULL) {
+			continue;
+		}
+		
+		if (strcmp(condition->phaseName, phaseName) == 0) {
+			if (condition->type == CONDITION_SUCCESS) {
+				*hasSuccess = true;
+			} else if (condition->type == CONDITION_FAIL) {
+				*hasFail = true;
+			}
+		}
+	}
+}
+
+/**
  * Generates Makefile targets section.
  */
 static void _generateTargets(Program * program, FILE * output) {
@@ -259,12 +294,30 @@ static void _generateTargets(Program * program, FILE * output) {
 		}
 	}
 	
+	// Check for conditionals to include in .PHONY
+	bool hasSuccessPreBuild = false, hasFailPreBuild = false;
+	bool hasSuccessPostBuild = false, hasFailPostBuild = false;
+	_hasConditionalForPhase(program, "pre_build", &hasSuccessPreBuild, &hasFailPreBuild);
+	_hasConditionalForPhase(program, "post_build", &hasSuccessPostBuild, &hasFailPostBuild);
+	
 	// Generate .PHONY declaration
+	fprintf(output, ".PHONY: pre_build build post_build run");
 	if (needsEnsureLogDir) {
-		fprintf(output, ".PHONY: pre_build build post_build run _ensure_log_dir\n\n");
-	} else {
-		fprintf(output, ".PHONY: pre_build build post_build run\n\n");
+		fprintf(output, " _ensure_log_dir");
 	}
+	if (hasSuccessPreBuild) {
+		fprintf(output, " if_success_pre_build");
+	}
+	if (hasFailPreBuild) {
+		fprintf(output, " if_fail_pre_build");
+	}
+	if (hasSuccessPostBuild) {
+		fprintf(output, " if_success_post_build");
+	}
+	if (hasFailPostBuild) {
+		fprintf(output, " if_fail_post_build");
+	}
+	fprintf(output, "\n\n");
 	
 	// Generate _ensure_log_dir target if needed
 	if (needsEnsureLogDir) {
@@ -308,7 +361,14 @@ static void _generateTargets(Program * program, FILE * output) {
 	}
 	
 	if (hasBuild) {
-		fprintf(output, "build: pre_build\n");
+		fprintf(output, "build: pre_build");
+		if (hasSuccessPreBuild) {
+			fprintf(output, " if_success_pre_build");
+		}
+		if (hasFailPreBuild) {
+			fprintf(output, " if_fail_pre_build");
+		}
+		fprintf(output, "\n");
 		_writeCommand(output, "\t", "$(CC) $(CFLAGS) $(INCLUDES) -o $(OUTPUT) $(SOURCES) $(LIBS)", logging, "\n\n");
 	}
 	
@@ -333,7 +393,14 @@ static void _generateTargets(Program * program, FILE * output) {
 	}
 	
 	if (hasRun) {
-		fprintf(output, "run: post_build\n");
+		fprintf(output, "run: post_build");
+		if (hasSuccessPostBuild) {
+			fprintf(output, " if_success_post_build");
+		}
+		if (hasFailPostBuild) {
+			fprintf(output, " if_fail_post_build");
+		}
+		fprintf(output, "\n");
 		_writeCommand(output, "\t", "./$(OUTPUT)", logging, "\n\n");
 	}
 }
@@ -367,7 +434,7 @@ static void _generateConditionals(Program * program, FILE * output) {
 		const char * comparison = (condition->type == CONDITION_FAIL) ? "-ne" : "-eq";
 		
 		fprintf(output, ".PHONY: %s_%s\n", prefix, phaseName);
-		fprintf(output, "%s_%s:\n", prefix, phaseName);
+		fprintf(output, "%s_%s: %s\n", prefix, phaseName, phaseName);
 		fprintf(output, "\t@if [ $$? %s 0 ]; then \\\n", comparison);
 		
 		bool wroteBody = false;
@@ -375,14 +442,31 @@ static void _generateConditionals(Program * program, FILE * output) {
 			if (cmdIt->command == NULL || cmdIt->command->commandLine == NULL) {
 				continue;
 			}
-			_writeCommand(output, "\t\t", cmdIt->command->commandLine, logging, "; \\\n");
+			// Dentro del bloque if, no usar @ porque ya está en el if
+			fprintf(output, "\t\t%s", cmdIt->command->commandLine);
+			if (logging.enabled && logging.path != NULL) {
+				if (logging.mode == APPEND_MODE) {
+					fprintf(output, " >> $(LOG_FILE) 2>&1");
+				} else {
+					fprintf(output, " > $(LOG_FILE) 2>&1");
+				}
+			}
+			fprintf(output, "; \\\n");
 			wroteBody = true;
 		}
 		
 		if (!wroteBody) {
 			char buffer[256];
 			snprintf(buffer, sizeof(buffer), "echo \"Conditional %s_%s has no commands\"", prefix, phaseName);
-			_writeCommand(output, "\t\t", buffer, logging, "; \\\n");
+			fprintf(output, "\t\t%s", buffer);
+			if (logging.enabled && logging.path != NULL) {
+				if (logging.mode == APPEND_MODE) {
+					fprintf(output, " >> $(LOG_FILE) 2>&1");
+				} else {
+					fprintf(output, " > $(LOG_FILE) 2>&1");
+				}
+			}
+			fprintf(output, "; \\\n");
 		}
 		
 		fprintf(output, "\tfi\n\n");
