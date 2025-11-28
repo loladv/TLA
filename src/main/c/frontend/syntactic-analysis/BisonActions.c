@@ -102,60 +102,6 @@ static void _freeVarTable(void) {
 
 /* PUBLIC FUNCTIONS */
 
-/*
-
-Constant * IntegerConstantSemanticAction(const int value) {
-	_logSyntacticAnalyzerAction(__FUNCTION__);
-	Constant * constant = calloc(1, sizeof(Constant));
-	constant->value = value;
-	return constant;
-}
-
-Expression * ArithmeticExpressionSemanticAction(Expression * leftExpression, Expression * rightExpression, ExpressionType type) {
-	_logSyntacticAnalyzerAction(__FUNCTION__);
-	Expression * expression = calloc(1, sizeof(Expression));
-	expression->leftExpression = leftExpression;
-	expression->rightExpression = rightExpression;
-	expression->type = type;
-	return expression;
-}
-
-Expression * FactorExpressionSemanticAction(Factor * factor) {
-	_logSyntacticAnalyzerAction(__FUNCTION__);
-	Expression * expression = calloc(1, sizeof(Expression));
-	expression->factor = factor;
-	expression->type = FACTOR;
-	return expression;
-}
-
-Factor * ConstantFactorSemanticAction(Constant * constant) {
-	_logSyntacticAnalyzerAction(__FUNCTION__);
-	Factor * factor = calloc(1, sizeof(Factor));
-	factor->constant = constant;
-	factor->type = CONSTANT;
-	return factor;
-}
-
-Factor * ExpressionFactorSemanticAction(Expression * expression) {
-	_logSyntacticAnalyzerAction(__FUNCTION__);
-	Factor * factor = calloc(1, sizeof(Factor));
-	factor->expression = expression;
-	factor->type = EXPRESSION;
-	return factor;
-}
-
-Program * ExpressionProgramSemanticAction(Expression * expression) {
-	_logSyntacticAnalyzerAction(__FUNCTION__);
-	Program * program = calloc(1, sizeof(Program));
-	program->expression = expression;
-	_compilerState->abstractSyntaxtTree = program;
-	return program;
-}
-
-*/
-
-//TODO: Completar con lo que falta
-
 Program* MakeProgram(Decl* projectDecl, DeclList* sections){
 	_logSyntacticAnalyzerAction(__FUNCTION__);
 	Program * program = calloc(1, sizeof(Program));
@@ -355,6 +301,10 @@ Command* MakeCommand(CommandType type, ItemList* args) {
                      type == CP_CMD ? "cp" : "mv"));
                 error = true;
                 break;
+            default:
+                logError(_logger, "Unknown command type %d.", type);
+                error = true;
+                break;
         }
     }
 
@@ -409,6 +359,11 @@ Command* MakeCommandFromLine(char* commandLine) {
                     (type == MKDIR_CMD ? "mkdir" : 
                      type == RM_CMD ? "rm" : 
                      type == CP_CMD ? "cp" : "mv"));
+                _semanticError = true;
+                free(commandLine);
+                return NULL;
+            default:
+                logError(_logger, "Unknown command type %d.", type);
                 _semanticError = true;
                 free(commandLine);
                 return NULL;

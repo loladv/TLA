@@ -169,9 +169,6 @@ CompilationStatus UnknownLexemeAction() {
 	return FAILED;
 }
 
-// TODO: No borro lo de la calculadora para tenerlo de referencia, despues borrar.
-
-
 static char * _dup_lexeme(Token * token) {
 	char * copy = (char *) calloc(token->length + 1, sizeof(char));
 	memcpy(copy, token->lexeme, token->length);

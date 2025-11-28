@@ -5,9 +5,7 @@
 #include "BisonActions.h"
 
 /**
- * The error reporting function for Bison parser.
- *
- * @todo Add location to the grammar and "pushToken" API function.
+ * Error reporting hook for the Bison parser.
  *
  * @see https://www.gnu.org/software/bison/manual/html_node/Error-Reporting-Function.html
  * @see https://www.gnu.org/software/bison/manual/html_node/Tracking-Locations.html
@@ -16,7 +14,6 @@ void yyerror(const YYLTYPE * location, const char * message) {}
 
 %}
 
-// You touch this, and you die.
 %define api.pure full
 %define api.push-pull push
 %define api.value.union.name SemanticValue
@@ -111,14 +108,6 @@ void yyerror(const YYLTYPE * location, const char * message) {}
 %token <token> MV
 
 /** Non-terminals. */
-/*
-%type <constant> constant
-%type <expression> expression
-%type <factor> factor
-%type <program> program
-*/
-
-//TODO: Completar con lo que falta
 %type  <command> command
 %type  <commandList> command_list command_list_opt pre_build_decl post_build_decl 
 %type  <program> program
@@ -130,44 +119,9 @@ void yyerror(const YYLTYPE * location, const char * message) {}
 %type  <integer> log_mode
 %type  <condition> condition
 
-//Lo dejo comentado para ver como se usa si lo necesitaramos
-/**
- * Precedence and associativity.
- *
- * @see https://en.cppreference.com/w/cpp/language/operator_precedence.html
- * @see https://www.gnu.org/software/bison/manual/html_node/Precedence.html
- */
-/*
-%left ADD SUB
-%left MUL DIV
-*/
 %left MKDIR RM CP MV 
 %left TEXT
 %%
-
-// IMPORTANT: To use λ in the following grammar, use the %empty symbol.
-/*
-
-program: expression											{ $$ = ExpressionProgramSemanticAction($1); }
-	;
-
-expression: expression[left] ADD expression[right]			{ $$ = ArithmeticExpressionSemanticAction($left, $right, ADDITION); }
-	| expression[left] DIV expression[right]				{ $$ = ArithmeticExpressionSemanticAction($left, $right, DIVISION); }
-	| expression[left] MUL expression[right]				{ $$ = ArithmeticExpressionSemanticAction($left, $right, MULTIPLICATION); }
-	| expression[left] SUB expression[right]				{ $$ = ArithmeticExpressionSemanticAction($left, $right, SUBTRACTION); }
-	| factor												{ $$ = FactorExpressionSemanticAction($1); }
-	;
-
-factor: OPEN_PARENTHESIS expression CLOSE_PARENTHESIS		{ $$ = ExpressionFactorSemanticAction($2); }
-	| constant												{ $$ = ConstantFactorSemanticAction($1); }
-	;
-
-constant: INTEGER											{ $$ = IntegerConstantSemanticAction($1); }
-	;
-
-*/
-
-//TODO: Completar, arriba esta el ejemplo de la calculadora
 
 program
   : var_decl_list_opt project_decl section_list_opt  { $$ = MakeProgram($2, $3); }

@@ -1,8 +1,3 @@
-// Template includes from calculator example (commented out)
-//#include "backend/code-generation/Generator.h"
-//#include "backend/domain-specific/Calculator.h"
-
-// New backend includes for MakeLite-C
 #include "backend/domain-specific/SemanticAnalyzer.h"
 #include "backend/domain-specific/VariableResolver.h"
 #include "backend/domain-specific/GlobExpander.h"
@@ -16,11 +11,7 @@
 #include "support/type/CompilerState.h"
 #include "support/type/ModuleDestructor.h"
 
-/**
- * The main entry-point of the entire application. If you use "strtok" to
- * parse anything inside this project instead of using Flex and Bison, I will
- * find you, and I will kill you (Bryan Mills; "Taken", 2008).
- */
+/** Main entry point of the compiler. */
 const int main(const int length, const char ** arguments) {
 	LexicalAnalyzer * lexicalAnalyzer = createLexicalAnalyzer();
 	Logger * logger = createLogger("EntryPoint");
@@ -28,17 +19,13 @@ const int main(const int length, const char ** arguments) {
 		logDebugging(logger, "Argument %d: \"%s\"", k, arguments[k]);
 	}
 	CompilerState compilerState = {
-		.abstractSyntaxtTree = NULL,
-		.value = 0
+		.abstractSyntaxtTree = NULL
 	};
 	ModuleDestructor moduleDestructors[] = {
 		initializeAbstractSyntaxTreeModule(),
 		initializeFlexActionsModule(lexicalAnalyzer),
 		initializeBisonActionsModule(&compilerState),
 		initializeFrontendModule(lexicalAnalyzer),
-		//initializeCalculatorModule(),
-		//initializeGeneratorModule()
-		// New backend module initializations for MakeLite-C
 		initializeSemanticAnalyzerModule(),
 		initializeVariableResolverModule(),
 		initializeGlobExpanderModule(),
@@ -47,24 +34,6 @@ const int main(const int length, const char ** arguments) {
 	CompilationStatus compilationStatus = executeSyntacticAnalysis();
 	Program * program = compilerState.abstractSyntaxtTree;
 	if (compilationStatus == SUCCEEDED) {
-		// ----------------------------------------------------------------------------------------
-		// Beginning of the Backend... ------------------------------------------------------------
-		
-		// Template backend code from calculator example (commented out)
-		/*
-		logDebugging(logger, "Computing expression value...");
-		ComputationResult computationResult = executeCalculator(&compilerState);
-		if (computationResult.succeeded) {
-			compilerState.value = computationResult.value;
-			executeGenerator(&compilerState);
-		}
-		else {
-			logError(logger, "The computation phase rejects the input program.");
-			compilationStatus = FAILED;
-		}
-		*/
-		
-		// New backend for MakeLite-C
 		logDebugging(logger, "Starting semantic analysis...");
 		compilationStatus = executeSemanticAnalysis(&compilerState);
 		
@@ -92,9 +61,6 @@ const int main(const int length, const char ** arguments) {
 		} else {
 			logError(logger, "Semantic analysis failed.");
 		}
-		
-		// ...end of the Backend. -----------------------------------------------------------------
-		// ----------------------------------------------------------------------------------------
 	}
 	else {
 		logError(logger, "The syntactic-analysis phase rejects the input program.");

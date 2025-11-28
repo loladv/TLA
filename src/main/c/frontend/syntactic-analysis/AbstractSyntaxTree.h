@@ -8,85 +8,7 @@
 /** Initialize module's internal state. */
 ModuleDestructor initializeAbstractSyntaxTreeModule();
 
-/**
- * This type definitions allows self-referencing types (e.g., an expression
- * that is made of another expressions, such as talking about you in 3rd
- * person, but without the madness).
- */
-
- /*
-
-typedef enum ExpressionType ExpressionType;
-typedef enum FactorType FactorType;
-
-typedef struct Constant Constant;
-typedef struct Expression Expression;
-typedef struct Factor Factor;
-typedef struct Program Program;
-
-/*
-
-/**
- * Node types for the Abstract Syntax Tree (AST).
- */
-
- /*
-enum ExpressionType {
-	ADDITION,
-	DIVISION,
-	FACTOR,
-	MULTIPLICATION,
-	SUBTRACTION
-};
-
-enum FactorType {
-	CONSTANT,
-	EXPRESSION
-};
-
-struct Constant {
-	int value;
-};
-
-struct Factor {
-	union {
-		Constant * constant;
-		Expression * expression;
-	};
-	FactorType type;
-};
-
-struct Expression {
-	union {
-		Factor * factor;
-		struct {
-			Expression * leftExpression;
-			Expression * rightExpression;
-		};
-	};
-	ExpressionType type;
-};
-
-struct Program {
-	Expression * expression;
-};
-
-*/
-
-/**
- * Node recursive super-duper-trambolik-destructors.
- */
-
- /*
-void destroyConstant(Constant * constant);
-void destroyExpression(Expression * expression);
-void destroyFactor(Factor * factor);
-void destroyProgram(Program * program);
-*/
-
-//TODO: Completar con lo que falta
-
-// Declaraciones forward para tipos recursivos
+/* Forward declarations for recursive types */
 typedef enum DeclType DeclType;
 typedef enum ItemType ItemType;
 typedef enum LogMode LogMode;
@@ -103,33 +25,30 @@ typedef struct Command Command;
 typedef struct CommandList CommandList;
 typedef struct Condition Condition;
 
-// Tipos de declaraciones
 enum DeclType {
-    PROJECT_DECL,    // project helloWorld
-    SRC_DECL,        // sources { main.c }
-    COMPILER_DECL,   // compiler clang
-    LIBS_DECL,       // libraries { m pthread }
-    HEADERS_DECL,    // headers { include/ }
-    OUTPUT_DECL,     // output myapp
-    PRE_BUILD_DECL,  // pre_build { cmds }
-    POST_BUILD_DECL, // post_build { cmds }
-    FLAGS_DECL,      // flags { -O2, -Wall }
-    BUILD_DECL,      // build
-    RUN_DECL,        // run
-    LOG_DECL,        // log { path "file.log"; mode append }
-    CONDITIONAL_DECL, // if fail/success(phase) { commands }
-    CUSTOM_PHASE_DECL // phase my_phase { commands }
+    PROJECT_DECL,
+    SRC_DECL,
+    COMPILER_DECL,
+    LIBS_DECL,
+    HEADERS_DECL,
+    OUTPUT_DECL,
+    PRE_BUILD_DECL,
+    POST_BUILD_DECL,
+    FLAGS_DECL,
+    BUILD_DECL,
+    RUN_DECL,
+    LOG_DECL,
+    CONDITIONAL_DECL,
+    CUSTOM_PHASE_DECL
 };
 
-// Tipos de items 
 enum ItemType {
-    TEXT_ITEM        // Para archivos como "main.c"
+    TEXT_ITEM
 };
 
-// Tipos de modo de log
 enum LogMode {
-    APPEND_MODE,     // append
-    OVERWRITE_MODE   // overwrite
+    APPEND_MODE,
+    OVERWRITE_MODE
 };
 
 enum CommandType {
@@ -144,94 +63,86 @@ enum ConditionType {
     CONDITION_SUCCESS
 };
 
-// Estructura para declaraciones individuales
 struct Decl {
     DeclType type;
     union {
         struct {
-            char * projectName;        // PROJECT: "helloWorld"
+            char * projectName;
         };
         struct {
-            ItemList * srcFiles;      // SOURCES: { main.c }
+            ItemList * srcFiles;
         };
         struct {
-            char * compilerName;      // COMPILER: clang/gcc
+            char * compilerName;
         };
         struct {
-            ItemList * libs;          // LIBRARIES: { m pthread }
+            ItemList * libs;
         };
         struct {
-            ItemList * headers;       // HEADERS: { include/ }
+            ItemList * headers;
         };
         struct {
-            char * outputName;        // OUTPUT: myapp
+            char * outputName;
         };
         struct {
-            ItemList * flags;         // FLAGS: { -O2, -Wall }
+            ItemList * flags;
         };
         struct {
-            char * logPath;          // LOG: path
-            LogMode logMode;         // LOG: mode (append/overwrite)
+            char * logPath;
+            LogMode logMode;
         };
         struct {
-            CommandList *commands;  // PRE_BUILD: { mkdir build }
+            CommandList *commands;
         } preBuildCommands;        
 
         struct {
-            CommandList *commands;  // POST_BUILD: { cp a.out bin/ }
+            CommandList *commands;
         } postBuildCommands;       
 
         struct {
-            Condition* condition;   // CONDITIONAL: condition type and phase name
-            CommandList* body;     // CONDITIONAL: commands to execute
+            Condition* condition;
+            CommandList* body;
         } conditionalPhase;       
 
         struct {
-            char* phaseName;       // CUSTOM_PHASE: name of the custom phase
-            CommandList* commands; // CUSTOM_PHASE: commands to execute
+            char* phaseName;
+            CommandList* commands;
         } customPhase;            
 
-        // BUILD y RUN no necesitan datos adicionales
+        /* BUILD and RUN share the union but have no extra data */
     };
 };
 
-// Lista de declaraciones
 struct DeclList {
     Decl * decl;
     DeclList * next;
 };
 
-// Item individual (archivo fuente)
 struct Item {
     ItemType type;
-    char * text;        // Nombre del archivo: "main.c"
+    char * text;
 };
 
-// Lista de items (archivos fuente)
 struct ItemList {
     Item * item;
     ItemList * next;
 };
 
-// Programa MakeLite-C
 struct Program {
-    Decl * projectDecl;    // Declaración del proyecto
-    DeclList * sections;   // Lista de secciones (src, build, run)
+    Decl * projectDecl;
+    DeclList * sections;
 };
 
-// Estructura para un comando individual
 struct Command {
     CommandType type;
-    char* commandLine;  // Línea completa del comando
+    char* commandLine;
 };
 
-// Lista de comandos
 struct CommandList {
     Command *command;
     CommandList *next;
 };
 
-// Estructura para condiciones
 struct Condition {
     ConditionType type;
     char* phaseName;
