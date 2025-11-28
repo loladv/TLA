@@ -125,7 +125,11 @@ static bool _validateCommands(Program * program) {
 				commands = it->decl->conditionalPhase.body;
 				break;
 			default:
-				// No commands in this declaration type
+				// No commands in this declaration type - this is expected and normal
+				// Only log as warning if the type is truly unexpected (outside enum range)
+				if (it->decl->type > CUSTOM_PHASE_DECL) {
+					logWarning(_logger, "Unknown declaration type (%d) does not contain commands, skipping validation.", it->decl->type);
+				}
 				continue;
 		}
 		

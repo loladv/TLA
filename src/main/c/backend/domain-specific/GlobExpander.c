@@ -136,6 +136,11 @@ static bool _expandGlobPatternsInProgram(Program * program) {
 				targetList = &it->decl->headers;
 				break;
 			default:
+				// This declaration type does not contain items that need glob expansion
+				// This is expected and normal - only log warning for truly unexpected types
+				if (it->decl->type > CUSTOM_PHASE_DECL) {
+					logWarning(_logger, "Unknown declaration type (%d) in glob expansion, skipping.", it->decl->type);
+				}
 				break;
 		}
 		
