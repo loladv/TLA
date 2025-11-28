@@ -1,0 +1,11 @@
+project testCustomPhasesWithCommands
+sources { main.c }
+
+phase warmup {
+mkdir build
+cp main build/
+}
+
+build
+run
+

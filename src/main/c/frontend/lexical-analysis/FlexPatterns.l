@@ -13,6 +13,7 @@
 %{
 static int in_parens = 0;
 static int in_conditional = 0;
+static int waiting_custom_phase_block = 0;
 
 /**
  * @see https://westes.github.io/flex/manual/Definitions-Section.html#Definitions-Section
@@ -79,7 +80,10 @@ path_atom           [^[:space:]{},";()]+
 "clean"             { return SimpleLexemeAction(CLEAN); }
 "test"              { return SimpleLexemeAction(TEST); }
 "target"            { return SimpleLexemeAction(TARGET); }
-"phase"             { return SimpleLexemeAction(PHASE); }
+"phase"             {
+    waiting_custom_phase_block = 1;
+    return SimpleLexemeAction(PHASE);
+}
 "log"               { return SimpleLexemeAction(LOG); }
 "append"            { return SimpleLexemeAction(APPEND); }
 "overwrite"         { return SimpleLexemeAction(OVERWRITE); }
@@ -95,7 +99,10 @@ path_atom           [^[:space:]{},";()]+
 <COMMANDS>"}"       { BEGIN(INITIAL); return SimpleLexemeAction(CLOSE_BRACE); }
 <COMMANDS>[[:alpha:]_][[:alnum:]_]*   { return TextualLexemeAction(IDENT); }
 "{"                 { 
-    if (in_conditional) {
+    if (waiting_custom_phase_block) {
+        BEGIN(COMMANDS);
+        waiting_custom_phase_block = 0;
+    } else if (in_conditional) {
         BEGIN(COMMANDS);
         in_conditional = 0;
     }
