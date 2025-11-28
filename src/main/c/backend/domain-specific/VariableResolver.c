@@ -229,7 +229,7 @@ static bool _detectCycles(VariableTable table) {
 	Color * colors = calloc(varCount, sizeof(Color));
 	if (colors == NULL) {
 		logError(_logger, "Memory allocation failed for cycle detection.");
-		return false;
+	return false;
 	}
 	
 	// Initialize all to WHITE

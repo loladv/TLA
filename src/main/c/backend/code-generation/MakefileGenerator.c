@@ -62,6 +62,35 @@ static LoggingConfig _getLoggingConfig(Program * program) {
 }
 
 /**
+ * Extracts the directory path from a log file path.
+ * Returns a newly allocated string with the directory, or NULL if there's no subdirectory.
+ * The caller is responsible for freeing the returned string.
+ */
+static char* _extractLogDirectory(const char* logPath) {
+	if (logPath == NULL) {
+		return NULL;
+	}
+	
+	char* lastSlash = strrchr(logPath, '/');
+	if (lastSlash == NULL) {
+		// No hay subdirectorio, el log está en el directorio actual
+		return NULL;
+	}
+	
+	// Extraer el directorio (desde el inicio hasta el último '/')
+	size_t dirLen = lastSlash - logPath;
+	char* directory = calloc(dirLen + 1, sizeof(char));
+	if (directory == NULL) {
+		return NULL;
+	}
+	
+	strncpy(directory, logPath, dirLen);
+	directory[dirLen] = '\0';
+	
+	return directory;
+}
+
+/**
  * Prints an ItemList to the output file, joining items with spaces.
  */
 static void _printItemList(ItemList * items, FILE * output) {
@@ -220,18 +249,53 @@ static void _generateTargets(Program * program, FILE * output) {
 	
 	LoggingConfig logging = _getLoggingConfig(program);
 	
+	// Check if log has subdirectory and generate _ensure_log_dir target if needed
+	char* logDir = NULL;
+	bool needsEnsureLogDir = false;
+	if (logging.enabled && logging.path != NULL) {
+		logDir = _extractLogDirectory(logging.path);
+		if (logDir != NULL) {
+			needsEnsureLogDir = true;
+		}
+	}
+	
 	// Generate .PHONY declaration
-	fprintf(output, ".PHONY: pre_build build post_build run\n\n");
+	if (needsEnsureLogDir) {
+		fprintf(output, ".PHONY: pre_build build post_build run _ensure_log_dir\n\n");
+	} else {
+		fprintf(output, ".PHONY: pre_build build post_build run\n\n");
+	}
+	
+	// Generate _ensure_log_dir target if needed
+	if (needsEnsureLogDir) {
+		fprintf(output, "_ensure_log_dir:\n");
+		char mkdirCmd[512];
+		snprintf(mkdirCmd, sizeof(mkdirCmd), "mkdir -p %s", logDir);
+		_writeCommand(output, "\t", mkdirCmd, (LoggingConfig){false, APPEND_MODE, NULL}, "\n\n");
+	}
 	
 	// Generate pre_build target
 	Decl * preBuildDecl = _findDecl(program, PRE_BUILD_DECL);
 	if (preBuildDecl != NULL && preBuildDecl->preBuildCommands.commands != NULL) {
-		fprintf(output, "pre_build:\n");
+		if (needsEnsureLogDir) {
+			fprintf(output, "pre_build: _ensure_log_dir\n");
+		} else {
+			fprintf(output, "pre_build:\n");
+		}
 		_generateCommands(preBuildDecl->preBuildCommands.commands, output, logging);
 		fprintf(output, "\n");
 	} else {
-		fprintf(output, "pre_build:\n");
+		if (needsEnsureLogDir) {
+			fprintf(output, "pre_build: _ensure_log_dir\n");
+		} else {
+			fprintf(output, "pre_build:\n");
+		}
 		_writeCommand(output, "\t", "echo \"Pre-build phase\"", logging, "\n\n");
+	}
+	
+	// Free logDir if allocated
+	if (logDir != NULL) {
+		free(logDir);
 	}
 	
 	// Generate build target
