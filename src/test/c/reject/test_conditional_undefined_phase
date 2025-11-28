@@ -1,0 +1,20 @@
+project undefinedPhaseConditional
+compiler gcc
+flags { -Wall }
+sources { main.c }
+
+pre_build {
+mkdir build
+}
+
+if fail(undefined_phase) {
+rm -rf build
+}
+
+if success(another_undefined) {
+cp main.c backup.c
+}
+
+build
+run
+

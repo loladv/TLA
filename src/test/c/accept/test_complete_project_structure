@@ -1,0 +1,42 @@
+project completeProject
+compiler gcc
+flags { -Wall -O2 -g }
+sources { main.c utils.c }
+headers { stdio.h stdlib.h include/*.h }
+libraries { m pthread }
+output myapp
+log { logs/build.log append }
+
+pre_build {
+mkdir -p build
+rm -rf temp/
+}
+
+phase setup {
+mkdir -p logs
+mkdir -p bin
+}
+
+phase tests {
+cp main.c test_main.c
+}
+
+post_build {
+cp myapp bin/
+mv myapp final/
+}
+
+if fail(pre_build) {
+rm -rf build
+}
+
+if success(setup) {
+cp config.txt build/
+}
+
+if success(post_build) {
+}
+
+build
+run
+

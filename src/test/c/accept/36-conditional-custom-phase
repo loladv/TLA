@@ -1,0 +1,39 @@
+project test_custom_phase_conditional
+compiler gcc
+flags { -Wall -g }
+sources { main.c }
+
+phase setup {
+mkdir builds
+mkdir logs
+}
+
+phase cleanup {
+rm -rf temp/
+rm -f *.o
+}
+
+pre_build {
+mkdir build
+}
+
+if fail(setup) {
+rm -rf build
+rm -rf logs
+}
+
+if success(cleanup) {
+cp main.c backup.c
+}
+
+post_build {
+cp main.c output.c
+}
+
+if success(post_build) {
+mv output.c final.c
+}
+
+build
+run
+

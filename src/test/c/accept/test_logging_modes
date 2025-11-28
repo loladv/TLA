@@ -1,0 +1,18 @@
+project loggingTest
+compiler gcc
+flags { -Wall }
+sources { main.c }
+
+log { logs/build.log append }
+
+pre_build {
+mkdir -p logs
+}
+
+post_build {
+cp main.c logs/
+}
+
+build
+run
+

@@ -1,0 +1,19 @@
+project globComplexTest
+compiler clang
+flags { -Wall }
+sources { *.c, src/*.c, util/*.c }
+headers { *.h, include/*.h, headers/*.h }
+libraries { m }
+output globapp
+
+pre_build {
+mkdir -p build
+}
+
+post_build {
+cp globapp build/
+}
+
+build
+run
+

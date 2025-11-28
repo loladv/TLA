@@ -1,0 +1,13 @@
+project invalidCommand
+compiler gcc
+flags { -Wall }
+sources { main.c }
+
+pre_build {
+mkdir build
+touch build/file.txt
+}
+
+build
+run
+

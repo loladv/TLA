@@ -1,0 +1,44 @@
+project multiPhaseTest
+compiler gcc
+flags { -Wall }
+sources { main.c }
+
+phase init {
+mkdir -p build
+mkdir -p logs
+}
+
+phase prepare {
+rm -f *.o
+rm -f *.tmp
+}
+
+phase deploy {
+cp main build/
+mv build/main build/deployed
+}
+
+phase cleanup {
+rm -rf temp/
+rm -f *.bak
+}
+
+pre_build {
+mkdir -p output
+}
+
+if fail(init) {
+rm -rf build
+}
+
+if success(prepare) {
+cp main.c backup.c
+}
+
+post_build {
+cp main output/
+}
+
+build
+run
+

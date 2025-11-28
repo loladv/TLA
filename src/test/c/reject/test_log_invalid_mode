@@ -1,0 +1,10 @@
+project invalidLogMode
+compiler gcc
+flags { -Wall }
+sources { main.c }
+
+log { logs/build.log invalid_mode }
+
+build
+run
+

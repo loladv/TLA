@@ -1,0 +1,10 @@
+project varBeforeDeclare
+compiler gcc
+flags { use UNDEFINED_VAR }
+sources { use UNDEFINED_VAR, main.c }
+
+var UNDEFINED_VAR = file1.c file2.c
+
+build
+run
+

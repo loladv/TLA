@@ -1,0 +1,20 @@
+project invalidConditional
+compiler gcc
+flags { -Wall }
+sources { main.c }
+
+pre_build {
+mkdir build
+}
+
+if fail(build) {
+rm -rf build
+}
+
+if success(run) {
+echo "Run successful"
+}
+
+build
+run
+

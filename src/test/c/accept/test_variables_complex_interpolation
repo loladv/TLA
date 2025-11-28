@@ -1,0 +1,23 @@
+var COMPILER_FLAGS = -Wall -Wextra -g
+constant SOURCE_FILES = main.c helper.c
+var EXTRA_FLAGS = -O2 -std=c99
+constant HEADER_DIRS = include include_dirs
+
+project varTest
+compiler clang
+flags { use COMPILER_FLAGS, use EXTRA_FLAGS }
+sources { use SOURCE_FILES, ${SOURCE_FILES} }
+headers { use HEADER_DIRS }
+output myprogram
+
+pre_build {
+mkdir -p build
+}
+
+post_build {
+cp myprogram build/
+}
+
+build
+run
+
