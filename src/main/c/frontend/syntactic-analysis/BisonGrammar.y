@@ -124,12 +124,12 @@ void yyerror(const YYLTYPE * location, const char * message) {}
 %%
 
 program
-  : var_decl_list_opt project_decl section_list_opt  { $$ = MakeProgram($2, $3); }
+  : var_decl_list_opt project_decl section_list_opt   { $$ = MakeProgram($2, $3); }
   ;
 
 var_decl_list_opt
   : %empty
-  | var_decl_list_opt var_decl                   { /* Process var_decl but don't return it */ (void)$2; }  
+  | var_decl_list_opt var_decl                   { /* Process var_decl but don't return it */ (void)$2; }
   ;
 
 project_decl
@@ -137,8 +137,8 @@ project_decl
   ;
 
 section_list_opt
-  : %empty									{ $$ = MakeDeclListEmpty(); }
-  | section_list_opt section_decl               { $$ = AddSectionToList($1, $2); }
+  : %empty                                       { $$ = MakeDeclListEmpty(); }
+  | section_list_opt section_decl                { $$ = AddSectionToList($1, $2); }
   ;
 
 section_decl
@@ -178,11 +178,11 @@ output_decl
   ;
 
 pre_build_decl
-  : PRE_BUILD OPEN_BRACE command_list_opt CLOSE_BRACE { $$ = $3; } 
+  : PRE_BUILD OPEN_BRACE command_list_opt CLOSE_BRACE { $$ = $3; }
   ;
 
 post_build_decl
-  : POST_BUILD OPEN_BRACE command_list_opt CLOSE_BRACE { $$ = $3; } 
+  : POST_BUILD OPEN_BRACE command_list_opt CLOSE_BRACE { $$ = $3; }
   ;
 
 compiler_decl
@@ -195,26 +195,26 @@ build_decl : BUILD ;
 run_decl   : RUN   ;
 
 opt_semicolon
-   : %empty
-  | SEMICOLON   { }
+  : %empty
+  | SEMICOLON                                      { }
   ;
 
 command_list_opt
-  : %empty                  { $$ = NULL; } 
-  | command_list            { $$ = $1; }
+  : %empty                                       { $$ = NULL; }
+  | command_list                                 { $$ = $1; }
   ;
 
-  command_list
-  : command                 { $$ = MakeCommandList($1, NULL); } 
-  | command_list command    { $$ = AddCommandToList($1, $2); }  
+command_list
+  : command                                      { $$ = MakeCommandList($1, NULL); }
+  | command_list command                         { $$ = AddCommandToList($1, $2); }
   ;
 
 command
-  : TEXT { $$ = MakeCommandFromLine($1); }
-  | MKDIR arg_list { $$ = MakeCommand(MKDIR_CMD, $2); }
-  | RM arg_list { $$ = MakeCommand(RM_CMD, $2); }
-  | CP arg_list { $$ = MakeCommand(CP_CMD, $2); }
-  | MV arg_list { $$ = MakeCommand(MV_CMD, $2); }
+  : TEXT                                          { $$ = MakeCommandFromLine($1); }
+  | MKDIR arg_list                                { $$ = MakeCommand(MKDIR_CMD, $2); }
+  | RM arg_list                                   { $$ = MakeCommand(RM_CMD, $2); }
+  | CP arg_list                                   { $$ = MakeCommand(CP_CMD, $2); }
+  | MV arg_list                                   { $$ = MakeCommand(MV_CMD, $2); }
   ;
 
 arg_list_opt
@@ -236,7 +236,7 @@ arg_list
 
 use_items
   : USE IDENT                                    { $$ = UseVar($2); }
-  | OPEN_VAR IDENT CLOSE_BRACE                  { $$ = UseVar($2); }
+  | OPEN_VAR IDENT CLOSE_BRACE                   { $$ = UseVar($2); }
   ;
 
 var_decl
@@ -266,8 +266,8 @@ condition
   ;
 
 custom_phase_decl
-  : PHASE IDENT OPEN_BRACE command_list_opt CLOSE_BRACE opt_semicolon 
-     {   $$ = MakeCustomPhaseDecl($2, $4); }
+  : PHASE IDENT OPEN_BRACE command_list_opt CLOSE_BRACE opt_semicolon
+    { $$ = MakeCustomPhaseDecl($2, $4); }
   ;
 
 %%
