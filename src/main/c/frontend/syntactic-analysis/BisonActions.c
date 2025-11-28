@@ -65,10 +65,18 @@ static bool _contains(const char * s, const char * needle) {
 }
 
 static bool _phaseExists(const char* phaseName, DeclList* sections) {
+    if (phaseName == NULL) return false;
     for (DeclList* it = sections; it != NULL; it = it->next) {
-        if (it->decl) {
-            if (it->decl->type == PRE_BUILD_DECL && strcmp(phaseName, "pre_build") == 0) return true;
-            if (it->decl->type == POST_BUILD_DECL && strcmp(phaseName, "post_build") == 0) return true;
+        if (it->decl == NULL) continue;
+        if (it->decl->type == PRE_BUILD_DECL && strcmp(phaseName, "pre_build") == 0) {
+            return true;
+        }
+        if (it->decl->type == POST_BUILD_DECL && strcmp(phaseName, "post_build") == 0) {
+            return true;
+        }
+        if (it->decl->type == CUSTOM_PHASE_DECL && it->decl->customPhase.phaseName != NULL &&
+            strcmp(it->decl->customPhase.phaseName, phaseName) == 0) {
+            return true;
         }
     }
     return false;
