@@ -276,47 +276,78 @@ Decl* MakeOutputDecl(char* outputName){
 Command* MakeCommand(CommandType type, ItemList* args) {
     _logSyntacticAnalyzerAction(__FUNCTION__);
 
-    // Extraer el texto completo del primer (y único) item
-    char* commandLine = NULL;
-    if (args && args->item && args->item->text) {
-        commandLine = strdup(args->item->text);
-    } else {
-        commandLine = strdup("");
-    }
-    
-    // Liberar la lista temporal de args ya que ya extrajimos el string
-    destroyItemList(args);
-    
-    // Validaciones básicas para comandos que requieren argumentos
-    bool error = false;
-    if (strlen(commandLine) == 0) {
-        switch (type) {
-            case MKDIR_CMD:
-            case RM_CMD:
-            case CP_CMD:
-            case MV_CMD:
-                logError(_logger, "Command '%s' requires arguments.", 
-                    (type == MKDIR_CMD ? "mkdir" : 
-                     type == RM_CMD ? "rm" : 
-                     type == CP_CMD ? "cp" : "mv"));
-                error = true;
-                break;
-            default:
-                logError(_logger, "Unknown command type %d.", type);
-                error = true;
-                break;
-        }
+    // Determinar el nombre del comando según el tipo
+    const char* cmdName = NULL;
+    switch (type) {
+        case MKDIR_CMD:
+            cmdName = "mkdir";
+            break;
+        case RM_CMD:
+            cmdName = "rm";
+            break;
+        case CP_CMD:
+            cmdName = "cp";
+            break;
+        case MV_CMD:
+            cmdName = "mv";
+            break;
+        default:
+            logError(_logger, "Unknown command type %d.", type);
+            _semanticError = true;
+            destroyItemList(args);
+            return NULL;
     }
 
-    if (error) {
+    // Validar que la lista de argumentos no esté vacía
+    if (args == NULL || args->item == NULL || args->item->text == NULL) {
+        logError(_logger, "Command '%s' requires arguments.", cmdName);
         _semanticError = true;
-        free(commandLine);
-        return NULL;         
+        destroyItemList(args);
+        return NULL;
+    }
+
+    // Calcular el tamaño total necesario para el commandLine
+    size_t cmdNameLen = strlen(cmdName);
+    size_t totalLen = cmdNameLen + 1; // +1 para el espacio después del comando
+    
+    // Contar argumentos y calcular longitud total
+    ItemList* it = args;
+    int argCount = 0;
+    while (it != NULL && it->item != NULL && it->item->text != NULL) {
+        totalLen += strlen(it->item->text) + 1; // +1 para el espacio entre argumentos
+        argCount++;
+        it = it->next;
     }
     
+    if (argCount == 0) {
+        logError(_logger, "Command '%s' requires arguments.", cmdName);
+        _semanticError = true;
+        destroyItemList(args);
+        return NULL;
+    }
+    
+    // Construir el string completo concatenando el comando con todos los argumentos
+    char* commandLine = calloc(totalLen, sizeof(char));
+    strcpy(commandLine, cmdName);
+    
+    it = args;
+    size_t pos = cmdNameLen;
+    while (it != NULL && it->item != NULL && it->item->text != NULL) {
+        commandLine[pos++] = ' ';
+        strcpy(commandLine + pos, it->item->text);
+        pos += strlen(it->item->text);
+        it = it->next;
+    }
+    commandLine[pos] = '\0';
+    
+    // Liberar la lista de argumentos
+    destroyItemList(args);
+    
+    // Crear el Command
     Command *cmd = calloc(1, sizeof(Command));
     cmd->type = type;
-    cmd->commandLine = commandLine; 
+    cmd->commandLine = commandLine;
+    
     return cmd;
 }
 
